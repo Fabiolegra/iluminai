@@ -128,6 +128,7 @@ $status_options = ['pendente', 'em andamento', 'resolvido'];
                                                     <option value="<?php echo $option; ?>" <?php echo ($ocorrencia['status'] == $option) ? 'selected' : ''; ?>><?php echo ucfirst($option); ?></option>
                                                 <?php endforeach; ?>
                                             </select>
+                                           <button type="button" class="px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-500 disabled:cursor-not-allowed"><a href="details.php?id=<?php echo $ocorrencia['id']; ?>"">detalhes</a></button>
                                             <button type="submit" class="px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-500 disabled:cursor-not-allowed" disabled>Salvar</button>
                                         </form>
                                     </td>
