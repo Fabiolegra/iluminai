@@ -147,6 +147,20 @@ unset($_SESSION['success_msg'], $_SESSION['error_msg']);
                             </form>
                         </div>
                     <?php endif; ?>
+
+                    <!-- Formulário de Exclusão para Admin ou Dono -->
+                    <?php
+                        $is_owner = ($_SESSION['user_id'] === $ocorrencia['user_id']);
+                        $is_admin = ($_SESSION['tipo'] === 'admin');
+                        $is_pending = ($ocorrencia['status'] === 'pendente');
+                        // Mostra o botão se for admin, ou se for o dono e o status for pendente
+                        if ($is_admin || ($is_owner && $is_pending)):
+                    ?>
+                        <form action="../src/actions/delete_occurrence.php" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir esta ocorrência? Esta ação não pode ser desfeita.');" class="mt-4">
+                            <input type="hidden" name="ocorrencia_id" value="<?php echo $ocorrencia_id; ?>">
+                            <button type="submit" class="w-full text-center bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg text-sm transition-colors">Excluir Ocorrência</button>
+                        </form>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -162,7 +176,11 @@ unset($_SESSION['success_msg'], $_SESSION['error_msg']);
             zoom: 15
         });
         map.addControl(new mapboxgl.NavigationControl(), 'top-left');
-        new mapboxgl.Marker().setLngLat([<?php echo $ocorrencia['longitude']; ?>, <?php echo $ocorrencia['latitude']; ?>]).addTo(map);
+        
+        // Adiciona um marcador com uma cor de destaque para garantir a visibilidade
+        new mapboxgl.Marker({ color: '#3B82F6' }) // Cor azul (blue-500)
+            .setLngLat([<?php echo $ocorrencia['longitude']; ?>, <?php echo $ocorrencia['latitude']; ?>])
+            .addTo(map);
     </script>
 </body>
 </html>
