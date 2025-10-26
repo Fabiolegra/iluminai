@@ -77,7 +77,17 @@ define('MAPBOX_TOKEN', 'pk.eyJ1Ijoic2dodXMiLCJhIjoiY21nYTV2c3A2MGYwdDJucHg4ZWt3Z
     // Adiciona os controles de navegação (zoom, rotação)
     map.addControl(new mapboxgl.NavigationControl(), 'top-left');
     // Adiciona um novo controle de atribuição compacto, que não inclui o link "Improve this map"
-    map.addControl(new mapboxgl.AttributionControl({ compact: true }));
+    map.addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-right');
+
+    // Adiciona o controle para o usuário ver sua própria localização
+    const geolocate = new mapboxgl.GeolocateControl({
+        positionOptions: {
+            enableHighAccuracy: true
+        },
+        trackUserLocation: true, // Segue a localização do usuário
+        showUserHeading: true    // Mostra a direção que o usuário está virado
+    });
+    map.addControl(geolocate, 'top-left');
     
     // Mapeamento de status para cores dos ícones
     const statusColors = {
@@ -96,6 +106,9 @@ define('MAPBOX_TOKEN', 'pk.eyJ1Ijoic2dodXMiLCJhIjoiY21nYTV2c3A2MGYwdDJucHg4ZWt3Z
 
     // Ao carregar o mapa, busca as ocorrências
     map.on('load', () => {
+      // Dispara a geolocalização automaticamente para o usuário ver sua posição
+      geolocate.trigger();
+
       fetch('occurrences.php') // Corrigido: Removido o '/api/' do caminho
         .then(response => response.json())
         .then(data => {

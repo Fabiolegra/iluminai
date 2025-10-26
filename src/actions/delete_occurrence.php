@@ -16,6 +16,7 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST" || !isset($_POST['ocorrencia_id']) || 
 
 $ocorrencia_id = intval($_POST['ocorrencia_id']);
 $user_id = $_SESSION['user_id'];
+$user_type = $_SESSION['tipo']; // Pega o tipo do usuário (admin ou usuario)
 
 // Inclui o arquivo de conexão com o banco de dados
 require_once __DIR__ . '/../../config/database.php';
@@ -30,12 +31,18 @@ if ($stmt_check = $conn->prepare($sql_check)) {
     if ($result->num_rows === 1) {
         $ocorrencia = $result->fetch_assoc();
 
-        // Apenas o dono da ocorrência pode excluir, e somente se o status for 'pendente'.
-        if ($ocorrencia['user_id'] !== $user_id || $ocorrencia['status'] !== 'pendente') {
+        // Verifica as permissões de exclusão
+        $is_owner = ($ocorrencia['user_id'] === $user_id);
+        $is_admin = ($user_type === 'admin');
+        $is_pending = ($ocorrencia['status'] === 'pendente');
+
+        // Regra: Admins podem excluir sempre. Usuários normais só podem excluir suas próprias ocorrências pendentes.
+        if (!$is_admin && !($is_owner && $is_pending)) {
             $_SESSION['error_msg'] = "Você não tem permissão para excluir esta ocorrência.";
             $stmt_check->close();
             $conn->close();
-            header("location: ../../public/dashboard.php");
+            // Redireciona para a página de onde veio (ou para o index como fallback)
+            header("Location: " . ($_SERVER['HTTP_REFERER'] ?? '../../public/index.php'));
             exit;
         }
 
@@ -45,7 +52,11 @@ if ($stmt_check = $conn->prepare($sql_check)) {
             $stmt_delete->bind_param("i", $ocorrencia_id);
             if ($stmt_delete->execute()) {
                 // 5. Exclusão do arquivo de foto (se existir)
-                if (!empty($ocorrencia['foto']) && file_exists($ocorrencia['foto'])) {
+                // O caminho da foto é relativo à pasta 'public', então precisamos ajustar para o contexto do script
+                $foto_path_from_root = __DIR__ . '/../../public/' . $ocorrencia['foto'];
+                if (!empty($ocorrencia['foto']) && file_exists($foto_path_from_root)) {
+                    unlink($foto_path_from_root);
+                } elseif (!empty($ocorrencia['foto']) && file_exists($ocorrencia['foto'])) { // Fallback para caminho relativo
                     unlink($ocorrencia['foto']);
                 }
                 $_SESSION['success_msg'] = "Ocorrência excluída com sucesso.";
@@ -63,6 +74,6 @@ if ($stmt_check = $conn->prepare($sql_check)) {
 $conn->close();
 
 // Redireciona de volta para o dashboard
-header("location: ../../public/dashboard.php");
+header("location: ../../public/index.php");
 exit;
 ?>
