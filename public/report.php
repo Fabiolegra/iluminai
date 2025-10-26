@@ -58,9 +58,11 @@ define('MAPBOX_TOKEN', 'pk.eyJ1Ijoic2dodXMiLCJhIjoiY21nYTV2c3A2MGYwdDJucHg4ZWt3Z
                     <label class="block text-gray-400 text-sm font-bold mb-2">Localização da Ocorrência</label>
                     
                     <div id="map" class="w-full h-64 rounded-lg border border-gray-600"></div>
-                    <p class="text-xs text-center text-gray-500 !mt-2">Clique no mapa para definir a localização ou use as opções abaixo.</p>
+                    <p class="text-xs text-center text-gray-500 !mt-2">Clique no mapa para definir a localização ou use o botão para obter sua localização atual.</p>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button type="button" id="getLocationBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg text-sm transition-colors">Usar minha localização atual</button>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                         <div>
                             <label for="latitude" class="block text-xs font-medium text-gray-500">Latitude</label>
                             <input type="text" id="latitude" name="latitude" class="bg-gray-900 border border-gray-600 rounded w-full py-2 px-3 text-gray-200 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="-2.4400" required>
@@ -70,7 +72,12 @@ define('MAPBOX_TOKEN', 'pk.eyJ1Ijoic2dodXMiLCJhIjoiY21nYTV2c3A2MGYwdDJucHg4ZWt3Z
                             <input type="text" id="longitude" name="longitude" class="bg-gray-900 border border-gray-600 rounded w-full py-2 px-3 text-gray-200 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="-54.7100" required>
                         </div>
                     </div>
-                    <p id="locationStatus" class="text-sm text-gray-400 mt-2 text-center"></p>
+                    <div>
+                        <label for="endereco" class="block text-xs font-medium text-gray-500">Endereço Aproximado</label>
+                        <input type="text" id="endereco" name="endereco" class="bg-gray-800 border border-gray-600 rounded w-full py-2 px-3 text-gray-400 leading-tight" placeholder="O endereço aparecerá aqui..." readonly>
+                    </div>
+
+                    <p id="locationStatus" class="text-sm text-gray-400 mt-2 text-center h-4"></p>
                 </div>
 
                 <!-- Botão de Envio -->
@@ -105,7 +112,7 @@ define('MAPBOX_TOKEN', 'pk.eyJ1Ijoic2dodXMiLCJhIjoiY21nYTV2c3A2MGYwdDJucHg4ZWt3Z
         let marker = null;
 
         // Função para atualizar os campos e o marcador
-        function updateLocation(lng, lat) {
+        async function updateLocation(lng, lat) {
             latInput.value = lat.toFixed(7);
             lonInput.value = lng.toFixed(7);
 
@@ -116,16 +123,36 @@ define('MAPBOX_TOKEN', 'pk.eyJ1Ijoic2dodXMiLCJhIjoiY21nYTV2c3A2MGYwdDJucHg4ZWt3Z
             // Adiciona um novo marcador na posição clicada
             marker = new mapboxgl.Marker().setLngLat([lng, lat]).addTo(map);
             
+            await reverseGeocode(lng, lat); // Busca o endereço
             checkLocationFields(); // Habilita o botão de envio
         }
 
-        // Evento de clique no mapa
-        map.on('click', (e) => {
-            const { lng, lat } = e.lngLat;
-            if (confirm(`Deseja usar esta localização?\n\nLatitude: ${lat.toFixed(5)}\nLongitude: ${lng.toFixed(5)}`)) {
-                updateLocation(lng, lat);
-                locationStatus.textContent = 'Localização definida pelo mapa.';
+        // Função para converter coordenadas em endereço (Reverse Geocoding)
+        async function reverseGeocode(lng, lat) {
+            locationStatus.textContent = 'Buscando endereço...';
+            const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}&language=pt-BR`;
+            
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                if (data.features && data.features.length > 0) {
+                    const address = data.features[0].place_name;
+                    document.getElementById('endereco').value = address;
+                    locationStatus.textContent = 'Endereço encontrado!';
+                } else {
+                    document.getElementById('endereco').value = 'Endereço não encontrado.';
+                    locationStatus.textContent = 'Não foi possível encontrar um endereço para esta localização.';
+                }
+            } catch (error) {
+                console.error('Erro no Reverse Geocoding:', error);
+                locationStatus.textContent = 'Erro ao buscar endereço.';
             }
+        }
+
+        // Evento de clique no mapa
+        map.on('click', async (e) => {
+            const { lng, lat } = e.lngLat;
+            await updateLocation(lng, lat);
         });
 
         function checkLocationFields() {
@@ -134,25 +161,27 @@ define('MAPBOX_TOKEN', 'pk.eyJ1Ijoic2dodXMiLCJhIjoiY21nYTV2c3A2MGYwdDJucHg4ZWt3Z
         }
 
         // Lógica para o botão "Usar minha localização atual"
-        getLocationBtn.addEventListener('click', () => {
+        getLocationBtn.addEventListener('click', (e) => {
+            e.preventDefault(); // Previne o envio do formulário
             if (!navigator.geolocation) {
                 locationStatus.textContent = 'Geolocalização não é suportada pelo seu navegador.';
                 return;
             }
 
             locationStatus.textContent = 'Obtendo localização...';
-            getLocationBtn.disabled = true; // Desabilita o botão de localização durante a busca
+            getLocationBtn.disabled = true;
+            getLocationBtn.textContent = 'Obtendo...';
 
-            navigator.geolocation.getCurrentPosition((position) => {
+            navigator.geolocation.getCurrentPosition(async (position) => {
                 const { latitude, longitude } = position.coords;
-                updateLocation(longitude, latitude);
-                locationStatus.innerHTML = `Localização obtida com sucesso! <br>Lat: ${position.coords.latitude.toFixed(4)}, Lon: ${position.coords.longitude.toFixed(4)}`;
-                getLocationBtn.classList.remove('bg-blue-500', 'hover:bg-blue-600');
-                getLocationBtn.classList.add('bg-green-500');
-                getLocationBtn.textContent = 'Localização Preenchida';
+                await updateLocation(longitude, latitude);
+                map.flyTo({ center: [longitude, latitude], zoom: 16 }); // Centraliza o mapa na localização
+                getLocationBtn.disabled = false;
+                getLocationBtn.textContent = 'Usar minha localização atual';
             }, () => {
                 locationStatus.textContent = 'Não foi possível obter a localização. Verifique as permissões.';
-                getLocationBtn.disabled = false; // Reabilita o botão de localização se falhar
+                getLocationBtn.disabled = false;
+                getLocationBtn.textContent = 'Usar minha localização atual';
             });
         });
 
