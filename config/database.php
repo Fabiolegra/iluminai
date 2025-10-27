@@ -12,10 +12,11 @@ if (basename(__FILE__) == basename($_SERVER["SCRIPT_FILENAME"])) {
 }
 
 // --- Configurações do Banco de Dados ---
-define('DB_SERVER', 'localhost');
-define('DB_USERNAME', 'root');
-define('DB_PASSWORD', '');
-define('DB_NAME', 'iluminai');
+// As configurações agora vêm do arquivo .env carregado no bootstrap.php
+define('DB_SERVER', $_ENV['DB_HOST'] ?? 'localhost');
+define('DB_USERNAME', $_ENV['DB_USERNAME'] ?? 'root');
+define('DB_PASSWORD', $_ENV['DB_PASSWORD'] ?? '');
+define('DB_NAME', $_ENV['DB_DATABASE'] ?? 'iluminai');
 
 // Cria a conexão
 $conn = new mysqli(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);

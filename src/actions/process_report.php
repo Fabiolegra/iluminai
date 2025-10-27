@@ -1,5 +1,5 @@
 <?php
-session_start();
+require_once __DIR__ . '/../../bootstrap.php';
 
 // Protege o script
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {

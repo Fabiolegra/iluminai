@@ -14,11 +14,9 @@ $admin_senha_texto_plano = 'admin123'; // A senha que será criptografada
 echo "<!DOCTYPE html><html lang='pt-br'><head><meta charset='UTF-8'><title>Setup Admin</title><script src='https://cdn.tailwindcss.com'></script></head><body class='bg-gray-900 text-gray-300 flex items-center justify-center min-h-screen'><div class='bg-gray-800 border border-gray-700 p-8 rounded-lg shadow-lg w-full max-w-md'>";
 echo "<h1 class='text-2xl font-bold text-gray-100 mb-4'>Configuração do Administrador</h1>";
 
-// Inclui o arquivo de configuração do banco de dados
-// Usamos um try-catch para lidar com o erro de conexão de forma mais elegante nesta página de setup.
-try {
-    require_once __DIR__ . '/../../config/database.php';
-} catch (Exception $e) {}
+// Carrega o bootstrap para ter acesso ao .env e à conexão com o banco
+require_once __DIR__ . '/../../bootstrap.php';
+require_once __DIR__ . '/../../config/database.php';
 
 // 1. Verifica se o usuário administrador já existe
 $sql_check = "SELECT id FROM users WHERE email = ?";

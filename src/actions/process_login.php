@@ -1,6 +1,6 @@
 <?php
-// Inicia a sessão
-session_start();
+// Carrega o bootstrap da aplicação (autoloader, .env, sessão)
+require_once __DIR__ . '/../../bootstrap.php';
 
 // Garante que o script só seja executado se a requisição for POST
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {

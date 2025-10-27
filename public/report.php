@@ -1,13 +1,11 @@
 <?php
-// Inicia a sessão e protege a página
-session_start();
+// Carrega o bootstrap da aplicação (autoloader, .env, sessão)
+require_once __DIR__ . '/../bootstrap.php';
 
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     header("location: login.php");
     exit;
 }
-// Define a chave da API do Mapbox no lado do servidor para segurança
-define('MAPBOX_TOKEN', 'pk.eyJ1Ijoic2dodXMiLCJhIjoiY21nYTV2c3A2MGYwdDJucHg4ZWt3ZGl4NiJ9.6n3z1p6riEzHiu7TfbM4mQ');
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -97,7 +95,7 @@ define('MAPBOX_TOKEN', 'pk.eyJ1Ijoic2dodXMiLCJhIjoiY21nYTV2c3A2MGYwdDJucHg4ZWt3Z
         const lonInput = document.getElementById('longitude');
         const submitBtn = document.getElementById('submitBtn');
 
-        mapboxgl.accessToken = '<?php echo MAPBOX_TOKEN; ?>';
+        mapboxgl.accessToken = '<?php echo $_ENV['MAPBOX_TOKEN']; ?>';
 
         const map = new mapboxgl.Map({
             container: 'map',

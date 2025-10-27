@@ -1,7 +1,8 @@
 <?php
-session_start();
+// Carrega o bootstrap da aplicação (autoloader, .env, sessão)
+require_once __DIR__ . '/../bootstrap.php';
 
-// 1. Proteção da página: Apenas usuários logados e do tipo 'admin' podem acessar.
+// 1. Proteção da página
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     header("location: login.php");
     exit;

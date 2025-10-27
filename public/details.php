@@ -1,7 +1,8 @@
 <?php
-session_start();
+// Carrega o bootstrap da aplicação (autoloader, .env, sessão)
+require_once __DIR__ . '/../bootstrap.php';
 
-// 1. Proteção da página: Apenas usuários logados podem acessar.
+// 1. Proteção da página
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     header("location: login.php");
     exit;
@@ -17,7 +18,6 @@ $ocorrencia_id = intval($_GET['id']);
 
 // Inclui o arquivo de configuração do banco de dados
 require_once __DIR__ . '/../config/database.php';
-define('MAPBOX_TOKEN', 'pk.eyJ1Ijoic2dodXMiLCJhIjoiY21nYTV2c3A2MGYwdDJucHg4ZWt3ZGl4NiJ9.6n3z1p6riEzHiu7TfbM4mQ');
 
 // 2. Processamento do formulário de atualização de status (APENAS PARA ADMINS)
 if ($_SERVER["REQUEST_METHOD"] == "POST" && $_SESSION['tipo'] === 'admin') {
@@ -168,7 +168,7 @@ unset($_SESSION['success_msg'], $_SESSION['error_msg']);
 
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
     <script>
-        mapboxgl.accessToken = '<?php echo MAPBOX_TOKEN; ?>';
+        mapboxgl.accessToken = '<?php echo $_ENV['MAPBOX_TOKEN']; ?>';
         const map = new mapboxgl.Map({
             container: 'map',
             style: 'mapbox://styles/mapbox/dark-v11',

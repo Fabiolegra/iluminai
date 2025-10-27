@@ -1,6 +1,6 @@
 <?php
-// Inicia a sessão
-session_start();
+// Carrega o bootstrap da aplicação (autoloader, .env, sessão)
+require_once __DIR__ . '/../bootstrap.php';
 
 // Se o usuário já estiver logado, redireciona para a página principal
 if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true){

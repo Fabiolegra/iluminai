@@ -54,20 +54,19 @@ Para rodar este projeto, você precisará de um ambiente de desenvolvimento web 
     *   Importe o arquivo `esquema.sql` para criar as tabelas e suas estruturas.
 
 3.  **Configure a Conexão com o Banco de Dados**
-    *   Abra o arquivo `config/database.php`.
-    *   Verifique se as constantes `DB_SERVER`, `DB_USERNAME`, `DB_PASSWORD` e `DB_NAME` correspondem às suas credenciais locais. O padrão é para um XAMPP recém-instalado.
-    ```php
-    // config/database.php
-    define('DB_SERVER', 'localhost');
-    define('DB_USERNAME', 'root');
-    define('DB_PASSWORD', '');
-    define('DB_NAME', 'iluminai');
+    *   Na raiz do projeto, renomeie o arquivo `.env.example` para `.env`.
+    *   Abra o arquivo `.env` e preencha as credenciais do seu banco de dados local.
+    ```dotenv
+    # .env
+    DB_HOST=localhost
+    DB_DATABASE=iluminai
+    DB_USERNAME=root
+    DB_PASSWORD=
     ```
 
 4.  **Configure o Token do Mapbox**
-    *   Para que os mapas funcionem, você precisa adicionar seu token de acesso do Mapbox.
-    *   Abra os arquivos que usam o mapa (ex: `public/details.php` e `public/index.php`) e substitua o placeholder pelo seu token.
-    *   *Sugestão de melhoria: Mova o token para um arquivo de configuração central.*
+    *   No mesmo arquivo `.env`, insira seu token de acesso do Mapbox na variável `MAPBOX_TOKEN`.
+    *   `MAPBOX_TOKEN="pk.eyJ1..."`
 
 5.  **Crie o Usuário Administrador**
     *   Com o servidor web em execução, acesse o seguinte URL no seu navegador:
@@ -112,4 +111,3 @@ Não se esqueça de dar uma estrela ao projeto! Obrigado!
 ## 📜 Licença
 
 Distribuído sob a licença MIT. Veja `LICENSE.md` para mais informações.
-

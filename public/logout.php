@@ -1,7 +1,7 @@
 <?php
 // 1. Inicia a sessão
-// É necessário iniciar a sessão para poder acessá-la e destruí-la.
-session_start();
+// Carrega o bootstrap da aplicação, que também inicia a sessão.
+require_once __DIR__ . '/../bootstrap.php';
  
 // 2. Desfaz todas as variáveis de sessão
 // Limpa o array $_SESSION, removendo todos os dados armazenados.

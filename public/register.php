@@ -1,6 +1,7 @@
 <?php
 // Inicia a sessão para poder usar variáveis de sessão (para mensagens de erro/sucesso)
-session_start();
+// Carrega o bootstrap da aplicação (autoloader, .env, sessão)
+require_once __DIR__ . '/../bootstrap.php';
 ?>
 
 <!DOCTYPE html>
