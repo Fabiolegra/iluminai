@@ -73,12 +73,12 @@ $status_colors = [
                                     </div>
                                     <p class="text-sm text-gray-400 mt-1">Reportado em: <?php echo date('d/m/Y \à\s H:i', strtotime($ocorrencia['created_at'])); ?></p>
                                 </div>
-                                <div class="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto">
-                                    <a href="details.php?id=<?php echo $ocorrencia['id']; ?>" class="flex-1 text-center bg-gray-700 hover:bg-gray-600 text-gray-200 font-semibold py-2 px-4 rounded-lg text-sm">Ver detalhes</a>
+                                <div class="flex flex-col sm:flex-row items-center gap-2 flex-shrink-0 w-full sm:w-auto mt-4 sm:mt-0">
+                                    <a href="details.php?id=<?php echo $ocorrencia['id']; ?>" class="w-full sm:w-auto text-center bg-gray-700 hover:bg-gray-600 text-gray-200 font-semibold py-2 px-4 rounded-lg text-sm">Ver detalhes</a>
                                     <?php if ($ocorrencia['status'] === 'pendente'): ?>
-                                        <form action="../src/actions/delete_occurrence.php" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir esta ocorrência?');" class="flex-1">
+                                        <form action="../src/actions/delete_occurrence.php" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir esta ocorrência?');" class="w-full sm:w-auto">
                                             <input type="hidden" name="ocorrencia_id" value="<?php echo $ocorrencia['id']; ?>">
-                                            <button type="submit" class="w-full text-center bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg text-sm">Excluir</button>
+                                            <button type="submit" class="w-full sm:w-auto text-center bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg text-sm">Excluir</button>
                                         </form>
                                     <?php endif; ?>
                                 </div>

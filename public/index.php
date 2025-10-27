@@ -30,14 +30,22 @@ define('MAPBOX_TOKEN', 'pk.eyJ1Ijoic2dodXMiLCJhIjoiY21nYTV2c3A2MGYwdDJucHg4ZWt3Z
         background-color: #1f2937; /* bg-gray-800 */
         color: #d1d5db; /* text-gray-300 */
         border: 1px solid #374151; /* border-gray-700 */
-        border-radius: 8px;
+        border-radius: 0.5rem; /* rounded-lg */
+        padding: 0.75rem; /* p-3 */
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        max-width: 280px;
     }
-    .mapboxgl-popup-content b { text-transform: capitalize; }
     .toast { visibility: hidden; min-width: 250px; margin-left: -125px; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 20; left: 50%; top: 80px; font-size: 17px; opacity: 0; transition: opacity 0.5s, top 0.5s; }
     .toast.show { visibility: visible; opacity: 1; top: 100px; }
     .toast.success { background-color: #22C55E; color: white; } /* green-500 */
     .toast.error { background-color: #EF4444; color: white; } /* red-500 */
 
+    /* Painel de Rota */
+    #route-panel { position: fixed; bottom: 20px; left: 20px; z-index: 20; background-color: #1f2937; /* bg-gray-800 */ color: #d1d5db; /* text-gray-300 */ padding: 1rem; border-radius: 0.5rem; border: 1px solid #374151; /* border-gray-700 */ box-shadow: 0 4px 6px rgba(0,0,0,0.3); max-width: 250px; display: none; }
+    #route-panel h3 { font-weight: bold; font-size: 1.1rem; margin-bottom: 0.5rem; }
+    #route-panel p { margin-bottom: 0.25rem; }
+    #route-panel button { width: 100%; background-color: #4b5563; /* bg-gray-600 */ padding: 0.5rem; border-radius: 0.375rem; margin-top: 0.75rem; }
+    #route-panel button:hover { background-color: #6b7280; /* bg-gray-500 */ }
   </style>
 </head>
 <body>
@@ -53,6 +61,13 @@ define('MAPBOX_TOKEN', 'pk.eyJ1Ijoic2dodXMiLCJhIjoiY21nYTV2c3A2MGYwdDJucHg4ZWt3Z
   <!-- Botão Flutuante para Reportar Problema -->
   <a href="report.php" class="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-500 text-white font-bold p-4 rounded-full shadow-lg z-10 flex items-center justify-center" title="Reportar Problema">
     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+  </a>
+
+  <!-- Painel para exibir informações da rota -->
+  <div id="route-panel">
+      <h3>Detalhes da Rota</h3>
+      <div id="route-instructions"></div>
+      <button type="button" onclick="clearRoute()">Limpar Rota</button>
   </div>
 
   <!-- Container para a notificação (toast) -->
@@ -96,6 +111,13 @@ define('MAPBOX_TOKEN', 'pk.eyJ1Ijoic2dodXMiLCJhIjoiY21nYTV2c3A2MGYwdDJucHg4ZWt3Z
       resolvido: '#22C55E'  // Verde (green-500)
     };
 
+    // Mapeamento de status para cores dos BADGES (consistente com details.php)
+    const statusBadgeColors = {
+        'pendente': 'bg-yellow-500/20 text-yellow-400',
+        'em andamento': 'bg-orange-500/20 text-orange-400',
+        'resolvido': 'bg-green-500/20 text-green-400',
+    };
+
     // Mapeamento de tipo para ícones SVG
     const typeIcons = {
         'falta de energia': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5.268l4.06-4.06a1 1 0 011.414 1.414l-4.06 4.06H19a1 1 0 01.95.684l1.7 4.93a1 1 0 01-.248 1.03l-4.06 4.06a1 1 0 01-1.414-1.414l4.06-4.06V14a1 1 0 01-1-1h-5.268l-4.06 4.06a1 1 0 01-1.414-1.414l4.06-4.06H1a1 1 0 01-.95-.684l-1.7-4.93a1 1 0 01.248-1.03l4.06-4.06a1 1 0 011.414 1.414L1.414 8H6a1 1 0 011 1v5.268l-4.06-4.06a1 1 0 01-1.414-1.414l4.06-4.06V2a1 1 0 011.3-.954z" clip-rule="evenodd" /></svg>`,
@@ -119,17 +141,32 @@ define('MAPBOX_TOKEN', 'pk.eyJ1Ijoic2dodXMiLCJhIjoiY21nYTV2c3A2MGYwdDJucHg4ZWt3Z
           data.forEach(ocorrencia => {
             // Verifica se o usuário atual pode ver os detalhes (é admin ou o dono)
             const canSeeDetails = currentUserType === 'admin' || currentUserId === ocorrencia.user_id;
+            
             let detailsLink = '';
             if (canSeeDetails) {
-              detailsLink = `<a href="details.php?id=${ocorrencia.id}" class="text-blue-400 font-semibold hover:underline mt-2 inline-block">Ver detalhes</a>`;
+              detailsLink = `<a href="details.php?id=${ocorrencia.id}" class="text-blue-400 hover:text-blue-300 font-semibold text-xs">Detalhes</a>`;
+            }
+
+            let traceRouteButton = '';
+            if (currentUserType === 'admin') {
+                // Passa as coordenadas para a função traceRoute
+                traceRouteButton = `<button onclick="traceRoute([${ocorrencia.longitude}, ${ocorrencia.latitude}])" class="bg-blue-600 text-white text-xs font-bold py-1 px-2 rounded hover:bg-blue-700">Traçar Rota</button>`;
             }
 
             // Cria o conteúdo do popup
             const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
-              `<b class="capitalize">${ocorrencia.tipo}</b><br>
-               ${ocorrencia.descricao}<br>
-               <span class="font-semibold">Status:</span> ${ocorrencia.status}<br>
-               ${detailsLink}`
+              `<div class="space-y-2 text-sm">
+                 <h3 class="font-bold text-base text-gray-100 capitalize">${ocorrencia.tipo}</h3>
+                 <p class="text-gray-400 leading-tight">${ocorrencia.descricao}</p>
+                 <div class="border-t border-gray-600 pt-2 mt-2 flex justify-between items-center">
+                   <span class="px-2 py-0.5 text-xs font-semibold rounded-full ${statusBadgeColors[ocorrencia.status] || 'bg-gray-600 text-gray-200'}">
+                     ${ocorrencia.status}
+                   </span>
+                   <div class="flex items-center gap-3">
+                     ${detailsLink} ${traceRouteButton}
+                   </div>
+                 </div>
+               </div>`
             );
 
             // Cria o elemento do marcador personalizado
@@ -152,6 +189,84 @@ define('MAPBOX_TOKEN', 'pk.eyJ1Ijoic2dodXMiLCJhIjoiY21nYTV2c3A2MGYwdDJucHg4ZWt3Z
         })
         .catch(error => console.error('Erro na requisição AJAX:', error));
     });
+
+    // --- LÓGICA PARA TRAÇAR ROTA (PARA ADMINS) ---
+    const routePanel = document.getElementById('route-panel');
+    const instructionsDiv = document.getElementById('route-instructions');
+    let userMarker = null;
+
+    // Função para buscar e desenhar a rota no mapa
+    async function getRoute(profile, startCoords, destinationCoords) {
+        const url = `https://api.mapbox.com/directions/v5/mapbox/${profile}/${startCoords[0]},${startCoords[1]};${destinationCoords[0]},${destinationCoords[1]}?steps=true&geometries=geojson&access_token=${mapboxgl.accessToken}&language=pt-BR`;
+
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            const route = data.routes[0];
+            const geojson = { type: 'Feature', properties: {}, geometry: route.geometry };
+
+            // Se a camada da rota já existir, atualiza os dados. Senão, cria uma nova.
+            if (map.getSource('route')) {
+                map.getSource('route').setData(geojson);
+            } else {
+                map.addLayer({
+                    id: 'route', type: 'line', source: { type: 'geojson', data: geojson },
+                    layout: { 'line-join': 'round', 'line-cap': 'round' },
+                    paint: { 'line-color': '#3887be', 'line-width': 5, 'line-opacity': 0.75 }
+                });
+            }
+            
+            // Exibe as instruções da rota no painel
+            const duration = Math.round(route.duration / 60); // em minutos
+            const distance = (route.distance / 1000).toFixed(2); // em km
+            instructionsDiv.innerHTML = `
+                <p><span class="font-bold">Duração:</span> ${duration} min</p>
+                <p><span class="font-bold">Distância:</span> ${distance} km</p>
+            `;
+            routePanel.style.display = 'block';
+
+            // Ajusta o mapa para mostrar a rota inteira
+            const bounds = new mapboxgl.LngLatBounds(startCoords, startCoords);
+            bounds.extend(destinationCoords);
+            map.fitBounds(bounds, { padding: 100 });
+
+        } catch (error) {
+            console.error('Erro ao buscar rota:', error);
+            showToast('Não foi possível traçar a rota.', 'error');
+        }
+    }
+
+    // Função principal que inicia o processo de traçar a rota
+    function traceRoute(destinationCoords) {
+        showToast('Obtendo sua localização...', 'success');
+        if (!navigator.geolocation) {
+            showToast('Geolocalização não suportada.', 'error');
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const startCoords = [position.coords.longitude, position.coords.latitude];
+                
+                // Remove marcador de usuário anterior se existir
+                if (userMarker) userMarker.remove();
+                // Adiciona marcador da localização inicial do admin
+                userMarker = new mapboxgl.Marker({ color: '#2ECC40' }).setLngLat(startCoords).setPopup(new mapboxgl.Popup().setText('Sua Localização')).addTo(map);
+                
+                showToast('Traçando rota...', 'success');
+                getRoute('driving-traffic', startCoords, destinationCoords); // 'driving-traffic' para rota de carro com trânsito
+            },
+            () => { showToast('Não foi possível obter sua localização. Verifique as permissões.', 'error'); }
+        );
+    }
+
+    // Função para limpar a rota do mapa e esconder o painel
+    function clearRoute() {
+        if (map.getSource('route')) map.removeLayer('route');
+        if (map.getSource('route')) map.removeSource('route');
+        if (userMarker) userMarker.remove();
+        routePanel.style.display = 'none';
+    }
 
     // Função para exibir notificações (toast)
     function showToast(message, type = 'success') {
