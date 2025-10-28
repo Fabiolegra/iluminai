@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS ocorrencias (
 CREATE TABLE IF NOT EXISTS ocorrencias_log (
     id INT AUTO_INCREMENT PRIMARY KEY,
     ocorrencia_id INT NOT NULL,
-    status_anterior ENUM('pendente','em andamento','resolvido'),
+    status_anterior ENUM('pendente','em andamento','resolvido') DEFAULT NULL,
     status_novo ENUM('pendente','em andamento','resolvido') NOT NULL,
     alterado_por INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

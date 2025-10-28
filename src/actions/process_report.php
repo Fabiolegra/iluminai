@@ -79,7 +79,7 @@ if ($stmt = $conn->prepare($sql)) {
         $ocorrencia_id = $stmt->insert_id; // Pega o ID da ocorrência recém-criada
 
         // 4. Adiciona o primeiro registro no histórico de status
-        $sql_log = "INSERT INTO ocorrencias_log (ocorrencia_id, status_anterior, status_novo, alterado_por) VALUES (?, NULL, ?, ?)";
+        $sql_log = "INSERT INTO ocorrencias_log (ocorrencia_id, status_novo, alterado_por) VALUES (?, ?, ?)";
         if ($stmt_log = $conn->prepare($sql_log)) {
             $status_inicial = 'pendente';
             $stmt_log->bind_param("isi", $ocorrencia_id, $status_inicial, $user_id);
