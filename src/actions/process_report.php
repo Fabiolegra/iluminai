@@ -76,6 +76,18 @@ if ($stmt = $conn->prepare($sql)) {
 
     if ($stmt->execute()) {
         // Sucesso! Redireciona para o dashboard (index.php por enquanto) com mensagem.
+        $ocorrencia_id = $stmt->insert_id; // Pega o ID da ocorrência recém-criada
+
+        // 4. Adiciona o primeiro registro no histórico de status
+        $sql_log = "INSERT INTO ocorrencias_log (ocorrencia_id, status_anterior, status_novo, alterado_por) VALUES (?, NULL, ?, ?)";
+        if ($stmt_log = $conn->prepare($sql_log)) {
+            $status_inicial = 'pendente';
+            $stmt_log->bind_param("isi", $ocorrencia_id, $status_inicial, $user_id);
+            $stmt_log->execute();
+            $stmt_log->close();
+        }
+        // Fim da adição ao log
+
         $_SESSION['success_msg'] = "Ocorrência reportada com sucesso!";
         header("location: ../../public/dashboard.php");
         exit();

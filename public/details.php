@@ -25,19 +25,36 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $_SESSION['tipo'] === 'admin') {
         $novo_status = $_POST['status'];
         $status_permitidos = ['pendente', 'em andamento', 'resolvido'];
 
-        if (in_array($novo_status, $status_permitidos)) {
+        // Pega o status atual ANTES de atualizar
+        $sql_get_status = "SELECT status FROM ocorrencias WHERE id = ?";
+        $stmt_get = $conn->prepare($sql_get_status);
+        $stmt_get->bind_param("i", $ocorrencia_id);
+        $stmt_get->execute();
+        $result_status = $stmt_get->get_result();
+        $status_anterior = $result_status->fetch_assoc()['status'];
+        $stmt_get->close();
+
+        // Só executa se o status for diferente e válido
+        if (in_array($novo_status, $status_permitidos) && $novo_status !== $status_anterior) {
             $sql_update = "UPDATE ocorrencias SET status = ? WHERE id = ?";
             if ($stmt = $conn->prepare($sql_update)) {
                 $stmt->bind_param("si", $novo_status, $ocorrencia_id);
                 if ($stmt->execute()) {
                     $_SESSION['success_msg'] = "Status da ocorrência #{$ocorrencia_id} atualizado com sucesso!";
+
+                    // Adiciona a mudança ao log
+                    $sql_log = "INSERT INTO ocorrencias_log (ocorrencia_id, status_anterior, status_novo, alterado_por) VALUES (?, ?, ?, ?)";
+                    $stmt_log = $conn->prepare($sql_log);
+                    $stmt_log->bind_param("issi", $ocorrencia_id, $status_anterior, $novo_status, $_SESSION['user_id']);
+                    $stmt_log->execute();
+                    $stmt_log->close();
                 } else {
                     $_SESSION['error_msg'] = "Erro ao atualizar o status.";
                 }
                 $stmt->close();
             }
         } else {
-            $_SESSION['error_msg'] = "Status inválido selecionado.";
+            $_SESSION['error_msg'] = "Status inválido ou idêntico ao atual.";
         }
     }
     // Redireciona para a página principal para ver o resultado no mapa
@@ -58,6 +75,20 @@ if ($stmt = $conn->prepare($sql_select)) {
     if ($result->num_rows === 1) {
         $ocorrencia = $result->fetch_assoc();
     }
+    $stmt->close();
+}
+
+// 3.1 Busca o histórico de status da ocorrência
+$historico = [];
+$sql_log = "SELECT l.status_anterior, l.status_novo, l.created_at, u.nome as alterado_por_nome
+            FROM ocorrencias_log l
+            JOIN users u ON l.alterado_por = u.id
+            WHERE l.ocorrencia_id = ?
+            ORDER BY l.created_at ASC";
+if ($stmt = $conn->prepare($sql_log)) {
+    $stmt->bind_param("i", $ocorrencia_id);
+    $stmt->execute();
+    $historico = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     $stmt->close();
 }
 $conn->close();
@@ -126,6 +157,35 @@ unset($_SESSION['success_msg'], $_SESSION['error_msg']);
                     
                     <?php if ($ocorrencia['foto']): ?>
                         <div><h3 class="text-sm font-semibold text-gray-500 mb-2">Foto</h3><img src="<?php echo htmlspecialchars($ocorrencia['foto']); ?>" alt="Foto da ocorrência" class="rounded-lg max-w-full h-auto border border-gray-700"></div>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Coluna de Histórico -->
+                <div class="md:col-span-2 space-y-4 border-t border-gray-700 pt-6">
+                    <h3 class="text-lg font-semibold text-gray-200">Histórico de Alterações</h3>
+                    <?php if (empty($historico)): ?>
+                        <p class="text-gray-400">Nenhum histórico de alterações para esta ocorrência.</p>
+                    <?php else: ?>
+                        <div class="flow-root">
+                            <ul role="list" class="-mb-8">
+                                <?php foreach ($historico as $index => $log): ?>
+                                <li>
+                                    <div class="relative pb-8">
+                                        <?php if ($index !== count($historico) - 1): ?>
+                                            <span class="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-600" aria-hidden="true"></span>
+                                        <?php endif; ?>
+                                        <div class="relative flex space-x-3">
+                                            <div><span class="h-8 w-8 rounded-full bg-gray-600 flex items-center justify-center ring-8 ring-gray-800"><svg class="h-5 w-5 text-gray-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clip-rule="evenodd" /></svg></span></div>
+                                            <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+                                                <div><p class="text-sm text-gray-400"><?php echo $log['status_anterior'] ? 'Status alterado de <strong class="font-medium text-gray-200 capitalize">'.htmlspecialchars($log['status_anterior']).'</strong> para' : 'Ocorrência criada com status'; ?> <strong class="font-medium text-gray-200 capitalize"><?php echo htmlspecialchars($log['status_novo']); ?></strong> por <strong class="font-medium text-gray-200"><?php echo htmlspecialchars($log['alterado_por_nome']); ?></strong></p></div>
+                                                <div class="text-right text-sm whitespace-nowrap text-gray-500"><time datetime="<?php echo $log['created_at']; ?>"><?php echo date('d/m/y H:i', strtotime($log['created_at'])); ?></time></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </div>
                     <?php endif; ?>
                 </div>
 
