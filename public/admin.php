@@ -24,25 +24,42 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $ocorrencia_id = intval($_POST['ocorrencia_id']);
         $novo_status = $_POST['status'];
 
-        // Validação simples do status
         $status_permitidos = ['pendente', 'em andamento', 'resolvido'];
-        if (in_array($novo_status, $status_permitidos)) {
+
+        // Pega o status atual ANTES de atualizar
+        $sql_get_status = "SELECT status FROM ocorrencias WHERE id = ?";
+        $stmt_get = $conn->prepare($sql_get_status);
+        $stmt_get->bind_param("i", $ocorrencia_id);
+        $stmt_get->execute();
+        $result_status = $stmt_get->get_result();
+        $status_anterior = $result_status->fetch_assoc()['status'];
+        $stmt_get->close();
+
+        // Só executa se o status for diferente e válido
+        if (in_array($novo_status, $status_permitidos) && $novo_status !== $status_anterior) {
             $sql_update = "UPDATE ocorrencias SET status = ? WHERE id = ?";
             if ($stmt = $conn->prepare($sql_update)) {
                 $stmt->bind_param("si", $novo_status, $ocorrencia_id);
                 if ($stmt->execute()) {
                     $_SESSION['success_msg'] = "Status da ocorrência #{$ocorrencia_id} atualizado com sucesso!";
+
+                    // Adiciona a mudança ao log
+                    $sql_log = "INSERT INTO ocorrencias_log (ocorrencia_id, status_anterior, status_novo, alterado_por) VALUES (?, ?, ?, ?)";
+                    $stmt_log = $conn->prepare($sql_log);
+                    $stmt_log->bind_param("issi", $ocorrencia_id, $status_anterior, $novo_status, $_SESSION['user_id']);
+                    $stmt_log->execute();
+                    $stmt_log->close();
                 } else {
                     $_SESSION['error_msg'] = "Erro ao atualizar o status.";
                 }
                 $stmt->close();
             }
         } else {
-            $_SESSION['error_msg'] = "Status inválido selecionado.";
+            $_SESSION['error_msg'] = "Status inválido ou idêntico ao atual.";
         }
     }
-    // Redireciona para a página principal para ver o resultado no mapa
-    header("location: index.php");
+    // Redireciona de volta para a própria página de admin
+    header("location: admin.php");
     exit;
 }
 
