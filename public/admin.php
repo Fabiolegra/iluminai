@@ -74,7 +74,6 @@ $result = $conn->query($sql_select);
 if ($result) {
     $ocorrencias = $result->fetch_all(MYSQLI_ASSOC);
 }
-$conn->close();
 
 $status_options = ['pendente', 'em andamento', 'resolvido'];
 ?>
@@ -158,5 +157,8 @@ $status_options = ['pendente', 'em andamento', 'resolvido'];
             </div>
         </div>
     </main>
+    <?php
+        $conn->close();
+    ?>
 </body>
 </html>

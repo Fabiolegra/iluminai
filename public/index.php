@@ -141,7 +141,7 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
             
             let detailsLink = '';
             if (canSeeDetails) {
-              detailsLink = `<a href="details.php?id=${ocorrencia.id}" class="text-blue-400 hover:text-blue-300 font-semibold text-xs">Detalhes</a>`;
+              detailsLink = `<a href="details.php?id=${ocorrencia.id}" class="bg-gray-600 text-white text-xs font-bold py-1 px-2 rounded hover:bg-gray-700">Detalhes</a>`;
             }
 
             let traceRouteButton = '';

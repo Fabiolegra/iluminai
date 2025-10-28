@@ -20,8 +20,8 @@ $ocorrencia_id = intval($_GET['id']);
 require_once __DIR__ . '/../config/database.php';
 
 // 2. Processamento do formulário de atualização de status (APENAS PARA ADMINS)
-if ($_SERVER["REQUEST_METHOD"] == "POST" && $_SESSION['tipo'] === 'admin') {
-    if (isset($_POST['status'])) {
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    if (isset($_POST['status']) && $_SESSION['tipo'] === 'admin') {
         $novo_status = $_POST['status'];
         $status_permitidos = ['pendente', 'em andamento', 'resolvido'];
 
@@ -56,9 +56,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $_SESSION['tipo'] === 'admin') {
         } else {
             $_SESSION['error_msg'] = "Status inválido ou idêntico ao atual.";
         }
+        // Redireciona para a própria página para ver o resultado
+        header("location: details.php?id=" . $ocorrencia_id);
+        exit;
     }
-    // Redireciona para a página principal para ver o resultado no mapa
-    header("location: index.php");
+
+    // 2.1 Processamento do formulário de novo comentário
+    if (isset($_POST['comentario'])) {
+        $comentario_texto = trim($_POST['comentario']);
+        if (!empty($comentario_texto)) {
+            $sql_insert_comment = "INSERT INTO comentarios (ocorrencia_id, user_id, comentario) VALUES (?, ?, ?)";
+            if ($stmt_comment = $conn->prepare($sql_insert_comment)) {
+                $stmt_comment->bind_param("iis", $ocorrencia_id, $_SESSION['user_id'], $comentario_texto);
+                $stmt_comment->execute();
+                $stmt_comment->close();
+            }
+        }
+        header("location: details.php?id=" . $ocorrencia_id);
+    }
     exit;
 }
 
@@ -91,9 +106,34 @@ if ($stmt = $conn->prepare($sql_log)) {
     $historico = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     $stmt->close();
 }
-$conn->close();
 
-// 4. Verificação de segurança: Ocorrência existe? O usuário tem permissão?
+// 3.2 Busca os comentários da ocorrência
+$comentarios = [];
+$sql_comments = "SELECT c.*, u.nome as user_nome, u.tipo as user_tipo
+                 FROM comentarios c
+                 JOIN users u ON c.user_id = u.id
+                 WHERE c.ocorrencia_id = ?
+                 ORDER BY c.created_at ASC";
+if ($stmt = $conn->prepare($sql_comments)) {
+    $stmt->bind_param("i", $ocorrencia_id);
+    $stmt->execute();
+    $comentarios = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+}
+
+// 4. Atualiza o timestamp de visualização dos comentários para o usuário atual
+// Isso "marca como lido" os comentários desta ocorrência
+$sql_update_seen = "INSERT INTO comentarios_visualizacao (user_id, ocorrencia_id, last_seen_at) 
+                    VALUES (?, ?, NOW()) 
+                    ON DUPLICATE KEY UPDATE last_seen_at = NOW()";
+if ($stmt_seen = $conn->prepare($sql_update_seen)) {
+    $stmt_seen->bind_param("ii", $_SESSION['user_id'], $ocorrencia_id);
+    $stmt_seen->execute();
+    $stmt_seen->close();
+}
+
+
+// 5. Verificação de segurança: Ocorrência existe? O usuário tem permissão?
 if ($ocorrencia === null) {
     // Ocorrência não encontrada, redireciona com erro.
     $_SESSION['error_msg'] = "Ocorrência não encontrada.";
@@ -105,6 +145,7 @@ if ($_SESSION['tipo'] !== 'admin' && $_SESSION['user_id'] !== $ocorrencia['user_
     // Se não for admin E não for o dono da ocorrência, nega o acesso.
     $_SESSION['error_msg'] = "Acesso negado. Você não tem permissão para ver esta ocorrência.";
     header("location: index.php");
+    $conn->close();
     exit;
 }
 
@@ -147,7 +188,7 @@ unset($_SESSION['success_msg'], $_SESSION['error_msg']);
             <?php if ($error_msg): ?>
                 <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-4" role="alert"><?php echo htmlspecialchars($error_msg); ?></div>
             <?php endif; ?>
-
+            
             <div class="bg-gray-800 border border-gray-700 shadow-lg rounded-lg overflow-hidden grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
                 <!-- Coluna de Informações -->
                 <div class="space-y-4">
@@ -161,7 +202,7 @@ unset($_SESSION['success_msg'], $_SESSION['error_msg']);
                 </div>
 
                 <!-- Coluna de Histórico -->
-                <div class="md:col-span-2 space-y-4 border-t border-gray-700 pt-6">
+                <div class="md:col-span-1 space-y-4 border-t md:border-t-0 md:border-l border-gray-700 pt-6 md:pt-0 md:pl-6">
                     <h3 class="text-lg font-semibold text-gray-200">Histórico de Alterações</h3>
                     <?php if (empty($historico)): ?>
                         <p class="text-gray-400">Nenhum histórico de alterações para esta ocorrência.</p>
@@ -187,6 +228,50 @@ unset($_SESSION['success_msg'], $_SESSION['error_msg']);
                             </ul>
                         </div>
                     <?php endif; ?>
+                </div>
+
+                <!-- Seção de Comentários -->
+                <div class="md:col-span-2 space-y-6 border-t border-gray-700 pt-6">
+                    <h3 class="text-lg font-semibold text-gray-200">Bate-papo da Ocorrência</h3>
+                    <div class="space-y-4">
+                        <?php if (empty($comentarios)): ?>
+                            <p class="text-gray-400">Nenhum comentário ainda. Seja o primeiro a enviar uma mensagem!</p>
+                        <?php else: ?>
+                            <?php foreach ($comentarios as $comentario): ?>
+                                <?php
+                                    $is_admin_comment = $comentario['user_tipo'] === 'admin';
+                                    $is_current_user_comment = $comentario['user_id'] === $_SESSION['user_id'];
+                                    $comment_bg = $is_admin_comment ? 'bg-blue-900/50 border-blue-700/50' : 'bg-gray-900/70';
+                                    $comment_align = $is_current_user_comment ? 'ml-auto' : 'mr-auto';
+                                ?>
+                                <div class="w-full max-w-lg <?php echo $comment_align; ?>">
+                                    <div class="p-3 rounded-lg border <?php echo $comment_bg; ?>">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <p class="text-sm font-bold <?php echo $is_admin_comment ? 'text-blue-400' : 'text-gray-200'; ?>">
+                                                <?php echo htmlspecialchars($comentario['user_nome']); ?>
+                                                <?php if ($is_admin_comment): ?>
+                                                    <span class="text-xs font-medium bg-blue-600 text-white px-2 py-0.5 rounded-full ml-2">Admin</span>
+                                                <?php endif; ?>
+                                            </p>
+                                            <time class="text-xs text-gray-500"><?php echo date('d/m H:i', strtotime($comentario['created_at'])); ?></time>
+                                        </div>
+                                        <p class="text-gray-300 whitespace-pre-wrap"><?php echo htmlspecialchars($comentario['comentario']); ?></p>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
+
+                    <!-- Formulário para novo comentário -->
+                    <div class="pt-4">
+                        <form action="details.php?id=<?php echo $ocorrencia_id; ?>" method="POST">
+                            <label for="comentario" class="block text-sm font-semibold text-gray-400 mb-2">Adicionar um comentário</label>
+                            <textarea name="comentario" id="comentario" rows="3" class="block w-full rounded-lg border-gray-600 bg-gray-900 text-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Digite sua mensagem aqui..." required></textarea>
+                            <div class="mt-3 text-right">
+                                <button type="submit" class="px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Enviar Mensagem</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
 
                 <!-- Coluna do Mapa e Ações -->
@@ -242,5 +327,8 @@ unset($_SESSION['success_msg'], $_SESSION['error_msg']);
             .setLngLat([<?php echo $ocorrencia['longitude']; ?>, <?php echo $ocorrencia['latitude']; ?>])
             .addTo(map);
     </script>
+    <?php
+        $conn->close();
+    ?>
 </body>
 </html>

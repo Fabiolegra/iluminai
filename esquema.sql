@@ -47,3 +47,28 @@ CREATE TABLE IF NOT EXISTS ocorrencias_log (
     FOREIGN KEY (ocorrencia_id) REFERENCES ocorrencias(id) ON DELETE CASCADE,
     FOREIGN KEY (alterado_por) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
+
+-- ========================================
+-- Tabela: comentarios
+-- ========================================
+CREATE TABLE IF NOT EXISTS comentarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    ocorrencia_id INT NOT NULL,
+    user_id INT NOT NULL,
+    comentario TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (ocorrencia_id) REFERENCES ocorrencias(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- ========================================
+-- Tabela: comentarios_visualizacao
+-- ========================================
+CREATE TABLE IF NOT EXISTS comentarios_visualizacao (
+    user_id INT NOT NULL,
+    ocorrencia_id INT NOT NULL,
+    last_seen_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, ocorrencia_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (ocorrencia_id) REFERENCES ocorrencias(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
