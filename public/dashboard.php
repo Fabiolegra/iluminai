@@ -101,7 +101,7 @@ $status_colors = [
                                         <?php endif; ?>
                                     </p>
                                 </div>
-                                <div class="flex flex-col sm:flex-row items-center gap-2 flex-shrink-0 w-full sm:w-auto mt-4 sm:mt-0">
+                                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-shrink-0 w-full sm:w-auto mt-4 sm:mt-0">
                                     <?php if (!empty($ocorrencia['unread_count']) && $ocorrencia['unread_count'] > 0): ?>
                                         <a href="details.php?id=<?php echo $ocorrencia['id']; ?>" class="flex items-center gap-2 w-full sm:w-auto text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg text-sm">
                                             <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM9 11a1 1 0 100-2 1 1 0 000 2zm-3 0a1 1 0 100-2 1 1 0 000 2zm6 0a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" /></svg>
@@ -113,7 +113,7 @@ $status_colors = [
                                     <?php if (!$is_admin && $ocorrencia['status'] === 'pendente'): ?>
                                         <form action="../src/actions/delete_occurrence.php" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir esta ocorrência?');" class="w-full sm:w-auto">
                                             <input type="hidden" name="ocorrencia_id" value="<?php echo $ocorrencia['id']; ?>">
-                                            <button type="submit" class="w-full sm:w-auto text-center bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg text-sm">Excluir</button>
+                                            <button type="submit" class="w-full sm:w-auto text-center bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg text-sm min-w-[100px]">Excluir</button>
                                         </form>
                                     <?php endif; ?>
                                 </div>

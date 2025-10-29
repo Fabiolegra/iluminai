@@ -189,9 +189,9 @@ unset($_SESSION['success_msg'], $_SESSION['error_msg']);
                 <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-4" role="alert"><?php echo htmlspecialchars($error_msg); ?></div>
             <?php endif; ?>
             
-            <div class="bg-gray-800 border border-gray-700 shadow-lg rounded-lg overflow-hidden grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+            <div class="bg-gray-800 border border-gray-700 shadow-lg rounded-lg overflow-hidden grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
                 <!-- Coluna de Informações -->
-                <div class="space-y-4">
+                <div class="space-y-4 md:col-span-2">
                     <div><h3 class="text-sm font-semibold text-gray-500">Tipo</h3><p class="text-lg text-gray-100 capitalize"><?php echo htmlspecialchars($ocorrencia['tipo']); ?></p></div>
                     <div><h3 class="text-sm font-semibold text-gray-500">Status</h3><span class="px-3 py-1 text-sm font-semibold rounded-full <?php echo $status_colors[$ocorrencia['status']] ?? 'bg-gray-700 text-gray-200'; ?>"><?php echo htmlspecialchars(ucfirst($ocorrencia['status'])); ?></span></div>
                     <div><h3 class="text-sm font-semibold text-gray-500">Descrição</h3><p class="text-gray-300 whitespace-pre-wrap"><?php echo htmlspecialchars($ocorrencia['descricao']); ?></p></div>
@@ -199,10 +199,20 @@ unset($_SESSION['success_msg'], $_SESSION['error_msg']);
                     <?php if ($ocorrencia['foto']): ?>
                         <div><h3 class="text-sm font-semibold text-gray-500 mb-2">Foto</h3><img src="<?php echo htmlspecialchars($ocorrencia['foto']); ?>" alt="Foto da ocorrência" class="rounded-lg max-w-full h-auto border border-gray-700"></div>
                     <?php endif; ?>
+
+                    <!-- Seção de Comentários -->
+                    <div class="space-y-6 border-t border-gray-700 pt-6">
+                        <?php include 'chat_section.php'; ?>
+                    </div>
                 </div>
 
-                <!-- Coluna de Histórico -->
-                <div class="md:col-span-1 space-y-4 border-t md:border-t-0 md:border-l border-gray-700 pt-6 md:pt-0 md:pl-6">
+                <!-- Coluna da Direita (Mapa, Ações, Histórico) -->
+                <div class="md:col-span-1 space-y-6">
+                    <!-- Mapa -->
+                    <div><h3 class="text-sm font-semibold text-gray-500 mb-2">Localização</h3><div id="map" class="w-full h-64 rounded-lg border border-gray-700"></div></div>
+
+                    <!-- Histórico -->
+                    <div class="space-y-4 border-t border-gray-700 pt-6">
                     <h3 class="text-lg font-semibold text-gray-200">Histórico de Alterações</h3>
                     <?php if (empty($historico)): ?>
                         <p class="text-gray-400">Nenhum histórico de alterações para esta ocorrência.</p>
@@ -229,55 +239,9 @@ unset($_SESSION['success_msg'], $_SESSION['error_msg']);
                         </div>
                     <?php endif; ?>
                 </div>
-
-                <!-- Seção de Comentários -->
-                <div class="md:col-span-2 space-y-6 border-t border-gray-700 pt-6">
-                    <h3 class="text-lg font-semibold text-gray-200">Bate-papo da Ocorrência</h3>
-                    <div class="space-y-4">
-                        <?php if (empty($comentarios)): ?>
-                            <p class="text-gray-400">Nenhum comentário ainda. Seja o primeiro a enviar uma mensagem!</p>
-                        <?php else: ?>
-                            <?php foreach ($comentarios as $comentario): ?>
-                                <?php
-                                    $is_admin_comment = $comentario['user_tipo'] === 'admin';
-                                    $is_current_user_comment = $comentario['user_id'] === $_SESSION['user_id'];
-                                    $comment_bg = $is_admin_comment ? 'bg-blue-900/50 border-blue-700/50' : 'bg-gray-900/70';
-                                    $comment_align = $is_current_user_comment ? 'ml-auto' : 'mr-auto';
-                                ?>
-                                <div class="w-full max-w-lg <?php echo $comment_align; ?>">
-                                    <div class="p-3 rounded-lg border <?php echo $comment_bg; ?>">
-                                        <div class="flex items-center justify-between mb-1">
-                                            <p class="text-sm font-bold <?php echo $is_admin_comment ? 'text-blue-400' : 'text-gray-200'; ?>">
-                                                <?php echo htmlspecialchars($comentario['user_nome']); ?>
-                                                <?php if ($is_admin_comment): ?>
-                                                    <span class="text-xs font-medium bg-blue-600 text-white px-2 py-0.5 rounded-full ml-2">Admin</span>
-                                                <?php endif; ?>
-                                            </p>
-                                            <time class="text-xs text-gray-500"><?php echo date('d/m H:i', strtotime($comentario['created_at'])); ?></time>
-                                        </div>
-                                        <p class="text-gray-300 whitespace-pre-wrap"><?php echo htmlspecialchars($comentario['comentario']); ?></p>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                    </div>
-
-                    <!-- Formulário para novo comentário -->
-                    <div class="pt-4">
-                        <form action="details.php?id=<?php echo $ocorrencia_id; ?>" method="POST">
-                            <label for="comentario" class="block text-sm font-semibold text-gray-400 mb-2">Adicionar um comentário</label>
-                            <textarea name="comentario" id="comentario" rows="3" class="block w-full rounded-lg border-gray-600 bg-gray-900 text-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Digite sua mensagem aqui..." required></textarea>
-                            <div class="mt-3 text-right">
-                                <button type="submit" class="px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Enviar Mensagem</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
+                
                 <!-- Coluna do Mapa e Ações -->
-                <div class="space-y-6">
-                    <div><h3 class="text-sm font-semibold text-gray-500 mb-2">Localização</h3><div id="map" class="w-full h-64 rounded-lg border border-gray-700"></div></div>
-
+                <div class="md:col-span-3 space-y-6">
                     <!-- Formulário de Ação para Admin -->
                     <?php if (($_SESSION['tipo'] ?? 'usuario') === 'admin'): ?>
                         <div class="bg-gray-900 p-4 rounded-lg border border-gray-700">

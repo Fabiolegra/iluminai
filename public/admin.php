@@ -84,17 +84,6 @@ $status_options = ['pendente', 'em andamento', 'resolvido'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel de Administração - IluminAI</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* Esconde a thead em telas pequenas */
-        @media (max-width: 767px) {
-            .responsive-table thead {
-                display: none;
-            }
-            .responsive-table tbody, .responsive-table tr {
-                display: block;
-            }
-        }
-    </style>
 </head>
 <body class="bg-gray-900 text-gray-300">
     <!-- Navbar -->
@@ -117,36 +106,36 @@ $status_options = ['pendente', 'em andamento', 'resolvido'];
             <?php endif; ?>
 
             <div class="overflow-x-auto bg-gray-800 border border-gray-700 rounded-lg shadow-md">
-                <table class="min-w-full responsive-table ">
-                    <thead class="bg-gray-800">
+                <table class="min-w-full">
+                    <thead class="hidden md:table-header-group bg-gray-800">
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">ID</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Usuário</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Tipo</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Data</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status / Ação</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Ação</th>
                         </tr>
                     </thead>
-                    <tbody class="space-y-4 md:space-y-0 md:divide-y md:divide-gray-700">
+                    <tbody class="block md:table-row-group space-y-4 md:space-y-0 p-4 md:p-0 md:divide-y md:divide-gray-700">
                         <?php if (empty($ocorrencias)): ?>
                             <tr class="block md:table-row"><td colspan="5" class="block md:table-cell px-6 py-4 text-center text-gray-400">Nenhuma ocorrência encontrada.</td></tr>
                         <?php else: ?>
                             <?php foreach ($ocorrencias as $ocorrencia): ?>
-                                <tr class="block md:table-row bg-gray-800 p-4 rounded-lg shadow md:bg-transparent md:p-0 md:shadow-none border-b border-gray-700 md:border-none">
+                                <tr class="block md:table-row bg-gray-900/50 p-4 rounded-lg shadow-md md:bg-transparent md:p-0 md:shadow-none md:border-b md:border-gray-700">
                                     <td class="block md:table-cell md:px-6 md:py-4 whitespace-nowrap text-sm font-medium text-gray-100"><a href="details.php?id=<?php echo $ocorrencia['id']; ?>" class="text-blue-400 hover:underline">#<?php echo $ocorrencia['id']; ?></a></td>
                                     <td class="block md:table-cell md:px-6 md:py-4 whitespace-nowrap text-sm text-gray-400"><span class="font-bold text-gray-300 md:hidden">Usuário: </span><?php echo htmlspecialchars($ocorrencia['user_nome']); ?></td>
                                     <td class="block md:table-cell md:px-6 md:py-4 whitespace-nowrap text-sm text-gray-400 capitalize"><span class="font-bold text-gray-300 md:hidden">Tipo: </span><?php echo htmlspecialchars($ocorrencia['tipo']); ?></td>
                                     <td class="block md:table-cell md:px-6 md:py-4 whitespace-nowrap text-sm text-gray-400"><span class="font-bold text-gray-300 md:hidden">Data: </span><?php echo date('d/m/Y H:i', strtotime($ocorrencia['created_at'])); ?></td>
                                     <td class="block md:table-cell md:px-6 md:py-4 whitespace-nowrap text-sm font-medium">
-                                        <form action="admin.php" method="POST" class="flex items-center gap-2" onchange="this.querySelector('button').disabled = false;">
+                                        <form action="admin.php" method="POST" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2" onchange="this.querySelector('button[type=submit]').disabled = false;">
                                             <input type="hidden" name="ocorrencia_id" value="<?php echo $ocorrencia['id']; ?>">
                                             <select name="status" class="block w-full rounded-lg bg-gray-700 border-gray-600 text-gray-200 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 text-sm">
                                                 <?php foreach ($status_options as $option): ?>
                                                     <option value="<?php echo $option; ?>" <?php echo ($ocorrencia['status'] == $option) ? 'selected' : ''; ?>><?php echo ucfirst($option); ?></option>
                                                 <?php endforeach; ?>
                                             </select>
-                                            <button type="submit" class="px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-500 disabled:cursor-not-allowed" disabled>Salvar</button>
-                                            <a href="details.php?id=<?php echo $ocorrencia['id']; ?>" class="px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 text-center">Detalhes</a>
+                                            <button type="submit" class="px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-500 disabled:cursor-not-allowed">Salvar</button>
+                                            <a href="details.php?id=<?php echo $ocorrencia['id']; ?>" class="px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 text-center">Ver</a>
                                         </form>
                                     </td>
                                 </tr>
