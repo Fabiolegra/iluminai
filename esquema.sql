@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS ocorrencias_log (
     alterado_por INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (ocorrencia_id) REFERENCES ocorrencias(id) ON DELETE CASCADE,
-    FOREIGN KEY (alterado_por) REFERENCES users(id) ON DELETE SET NULL
+    FOREIGN KEY (alterado_por) REFERENCES users(id) -- Removido ON DELETE SET NULL para maior integridade
 ) ENGINE=InnoDB;
 
 -- ========================================

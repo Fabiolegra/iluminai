@@ -2,6 +2,8 @@
 
 > Uma plataforma colaborativa para reportar e gerenciar problemas de iluminação pública de forma inteligente e geolocalizada.
 
+**[➡️ Acessar a Demonstração Online](https://iluminai.42web.io/iluminai/)**
+
 ## 📖 Sobre o Projeto
 
 O **IluminAI** é um sistema web desenvolvido para facilitar a comunicação entre os cidadãos e a administração municipal a respeito de problemas na iluminação pública. Usuários podem se cadastrar, fazer login e reportar ocorrências como postes com lâmpadas queimadas, falta de energia ou fios soltos, marcando a localização exata em um mapa interativo.
