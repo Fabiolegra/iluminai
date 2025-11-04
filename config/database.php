@@ -23,8 +23,7 @@ $conn = new mysqli(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
 
 // Verifica a conexão
 if ($conn->connect_error) {
-    // Em um ambiente de produção, seria melhor logar o erro em vez de exibi-lo.
-    // Por exemplo: error_log("Database connection failed: " . $conn->connect_error);
+    // Ex: error_log("Database connection failed: " . $conn->connect_error);
     die("ERRO: Falha na conexão com o banco de dados: " . $conn->connect_error);
 }
 ?>
