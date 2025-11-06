@@ -75,6 +75,42 @@ if ($result) {
     $ocorrencias = $result->fetch_all(MYSQLI_ASSOC);
 }
 
+// 4. Busca de estatísticas para o dashboard
+$stats = [
+    'pendente' => 0,
+    'em_andamento' => 0,
+    'resolvido' => 0,
+    'total_users' => 0
+];
+
+// Contagem de ocorrências por status
+$result_status = $conn->query("SELECT status, COUNT(id) as total FROM ocorrencias GROUP BY status");
+if ($result_status) {
+    while ($row = $result_status->fetch_assoc()) {
+        $key = str_replace(' ', '_', $row['status']); // 'em andamento' -> 'em_andamento'
+        if (array_key_exists($key, $stats)) {
+            $stats[$key] = $row['total'];
+        }
+    }
+}
+
+// Contagem de usuários
+$result_users = $conn->query("SELECT COUNT(id) as total FROM users WHERE tipo = 'usuario'");
+if ($result_users) {
+    $stats['total_users'] = $result_users->fetch_assoc()['total'];
+}
+
+// Ocorrências por tipo (para o gráfico)
+$ocorrencias_por_tipo = [];
+$result_tipos = $conn->query("SELECT tipo, COUNT(id) as total FROM ocorrencias GROUP BY tipo");
+if ($result_tipos) {
+    $ocorrencias_por_tipo = $result_tipos->fetch_all(MYSQLI_ASSOC);
+}
+
+// Histórico de alterações recentes
+$historico_recente = $conn->query("SELECT l.*, o.tipo as ocorrencia_tipo, u.nome as alterado_por_nome FROM ocorrencias_log l JOIN ocorrencias o ON l.ocorrencia_id = o.id JOIN users u ON l.alterado_por = u.id ORDER BY l.created_at DESC LIMIT 5")->fetch_all(MYSQLI_ASSOC);
+
+
 $status_options = ['pendente', 'em andamento', 'resolvido'];
 ?>
 <!DOCTYPE html>
@@ -84,6 +120,7 @@ $status_options = ['pendente', 'em andamento', 'resolvido'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel de Administração - IluminAI</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-gray-900 text-gray-300">
     <!-- Navbar -->
@@ -92,7 +129,54 @@ $status_options = ['pendente', 'em andamento', 'resolvido'];
     <!-- Conteúdo do Painel -->
     <main class="py-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 class="text-3xl font-bold text-gray-100 mb-6">Painel Administrativo</h1>
+            <h1 class="text-3xl font-bold text-gray-100 mb-8">Dashboard Administrativo</h1>
+
+            <!-- Seção de Estatísticas -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-gray-800 border border-gray-700 rounded-lg p-5">
+                    <h3 class="text-sm font-medium text-yellow-400">Pendentes</h3>
+                    <p class="mt-2 text-3xl font-semibold text-gray-100"><?php echo $stats['pendente']; ?></p>
+                </div>
+                <div class="bg-gray-800 border border-gray-700 rounded-lg p-5">
+                    <h3 class="text-sm font-medium text-orange-400">Em Andamento</h3>
+                    <p class="mt-2 text-3xl font-semibold text-gray-100"><?php echo $stats['em_andamento']; ?></p>
+                </div>
+                <div class="bg-gray-800 border border-gray-700 rounded-lg p-5">
+                    <h3 class="text-sm font-medium text-green-400">Resolvidas</h3>
+                    <p class="mt-2 text-3xl font-semibold text-gray-100"><?php echo $stats['resolvido']; ?></p>
+                </div>
+                <div class="bg-gray-800 border border-gray-700 rounded-lg p-5">
+                    <h3 class="text-sm font-medium text-blue-400">Usuários</h3>
+                    <p class="mt-2 text-3xl font-semibold text-gray-100"><?php echo $stats['total_users']; ?></p>
+                </div>
+            </div>
+
+            <!-- Seção de Gráficos e Atividades Recentes -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                <div class="lg:col-span-2 bg-gray-800 border border-gray-700 rounded-lg p-5">
+                    <h3 class="text-lg font-semibold text-gray-200 mb-4">Ocorrências por Tipo</h3>
+                    <div class="h-80"><canvas id="ocorrenciasPorTipoChart"></canvas></div>
+                </div>
+                <div class="bg-gray-800 border border-gray-700 rounded-lg p-5">
+                    <h3 class="text-lg font-semibold text-gray-200 mb-4">Atividade Recente</h3>
+                    <ul class="space-y-4">
+                        <?php if (empty($historico_recente)): ?>
+                            <li class="text-gray-400 text-sm">Nenhuma atividade recente.</li>
+                        <?php else: ?>
+                            <?php foreach ($historico_recente as $log): ?>
+                                <li class="text-sm">
+                                    <p class="text-gray-300">
+                                        <strong class="font-medium text-white"><?php echo htmlspecialchars($log['alterado_por_nome']); ?></strong> alterou a ocorrência
+                                        <a href="details.php?id=<?php echo $log['ocorrencia_id']; ?>" class="text-blue-400 hover:underline">#<?php echo $log['ocorrencia_id']; ?></a>
+                                        para <strong class="capitalize"><?php echo htmlspecialchars($log['status_novo']); ?></strong>.
+                                    </p>
+                                    <p class="text-xs text-gray-500 mt-1"><?php echo date('d/m/Y H:i', strtotime($log['created_at'])); ?></p>
+                                </li>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </ul>
+                </div>
+            </div>
 
             <?php if (isset($_SESSION['success_msg'])): ?>
                 <div class="bg-green-500/20 border border-green-500/30 text-green-400 px-4 py-3 rounded-lg relative mb-4" role="alert">
@@ -105,6 +189,7 @@ $status_options = ['pendente', 'em andamento', 'resolvido'];
                 </div>
             <?php endif; ?>
 
+            <h2 class="text-2xl font-bold text-gray-100 mb-6 mt-12">Gerenciar Ocorrências</h2>
             <div class="overflow-x-auto bg-gray-800 border border-gray-700 rounded-lg shadow-md">
                 <table class="min-w-full">
                     <thead class="hidden md:table-header-group bg-gray-800">
@@ -149,5 +234,33 @@ $status_options = ['pendente', 'em andamento', 'resolvido'];
     <?php
         $conn->close();
     ?>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const ctx = document.getElementById('ocorrenciasPorTipoChart').getContext('2d');
+            
+            const data = <?php echo json_encode($ocorrencias_por_tipo); ?>;
+            const labels = data.map(item => item.tipo.charAt(0).toUpperCase() + item.tipo.slice(1));
+            const values = data.map(item => item.total);
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Ocorrências',
+                        data: values,
+                        backgroundColor: ['#FBBF24', '#F97316', '#22C55E', '#3B82F6', '#8B5CF6'],
+                        borderColor: '#1f2937',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top', labels: { color: '#d1d5db' } } }
+                }
+            });
+        });
+    </script>
 </body>
 </html>
