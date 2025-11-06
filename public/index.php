@@ -14,6 +14,10 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>IluminAI - Mapa de Ocorrências</title>
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+  <!-- CSS e JS do Mapbox Geocoder -->
+  <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
+  <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css" type="text/css">
+
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { margin:0; padding:0; font-family: Arial, sans-serif; }
@@ -31,6 +35,16 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
         padding: 0.75rem; /* p-3 */
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         max-width: 280px;
+    }
+    /* Estilo para o campo de busca do Geocoder */
+    .mapboxgl-ctrl-geocoder {
+        width: 100%;
+        max-width: 350px;
+    }
+    /* Ajuste para o Geocoder não ficar sob o header */
+    .mapboxgl-ctrl-top-right {
+        margin-top: 5rem; /* 80px, para dar espaço abaixo do header h-16 (64px) */
+        margin-right: 1rem;
     }
     .toast { visibility: hidden; min-width: 250px; margin-left: -125px; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 20; left: 50%; top: 80px; font-size: 17px; opacity: 0; transition: opacity 0.5s, top 0.5s; }
     .toast.show { visibility: visible; opacity: 1; top: 100px; }
@@ -87,6 +101,21 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     });
 
     // Adiciona os controles de navegação (zoom, rotação)
+    map.addControl(new mapboxgl.NavigationControl(), 'top-left');
+
+    // Adiciona o controle de busca de endereço (Geocoder)
+    const geocoder = new MapboxGeocoder({
+        accessToken: mapboxgl.accessToken,
+        mapboxgl: mapboxgl,
+        marker: false, // Não adiciona um marcador permanente no resultado da busca
+        placeholder: 'Buscar endereço...',
+        bbox: [-54.80, -2.55, -54.60, -2.33], // Limita a busca à área de Santarém
+        proximity: { // Influencia os resultados para serem mais próximos deste ponto
+            longitude: -54.71,
+            latitude: -2.44
+        }
+    });
+    map.addControl(geocoder, 'top-right');
     map.addControl(new mapboxgl.NavigationControl(), 'top-left');
     // Adiciona um novo controle de atribuição compacto, que não inclui o link "Improve this map"
     map.addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-right');
