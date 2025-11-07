@@ -63,51 +63,114 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     exit;
 }
 
-// 3. Busca de todas as ocorrências com os dados do usuário
+// 3. Captura e validação dos filtros
+$filtro_data_inicio = $_GET['data_inicio'] ?? '';
+$filtro_data_fim = $_GET['data_fim'] ?? '';
+$filtro_tipo = $_GET['tipo'] ?? '';
+$filtro_status = $_GET['status'] ?? '';
+
+$where_clauses = [];
+$params = [];
+$types = '';
+
+if (!empty($filtro_data_inicio)) {
+    $where_clauses[] = "o.created_at >= ?";
+    $params[] = $filtro_data_inicio . ' 00:00:00';
+    $types .= 's';
+}
+if (!empty($filtro_data_fim)) {
+    $where_clauses[] = "o.created_at <= ?";
+    $params[] = $filtro_data_fim . ' 23:59:59';
+    $types .= 's';
+}
+if (!empty($filtro_tipo)) {
+    $where_clauses[] = "o.tipo = ?";
+    $params[] = $filtro_tipo;
+    $types .= 's';
+}
+if (!empty($filtro_status)) {
+    $where_clauses[] = "o.status = ?";
+    $params[] = $filtro_status;
+    $types .= 's';
+}
+
+$where_sql = '';
+if (!empty($where_clauses)) {
+    $where_sql = " WHERE " . implode(" AND ", $where_clauses);
+}
+
+// 4. Busca de todas as ocorrências com os dados do usuário (com filtros)
 $ocorrencias = [];
 $sql_select = "SELECT o.id, o.tipo, o.status, o.created_at, u.nome as user_nome 
                FROM ocorrencias o 
                JOIN users u ON o.user_id = u.id 
+               $where_sql
                ORDER BY o.created_at DESC";
 
-$result = $conn->query($sql_select);
-if ($result) {
+$stmt_ocorrencias = $conn->prepare($sql_select);
+if ($stmt_ocorrencias) {
+    if (!empty($params)) {
+        $stmt_ocorrencias->bind_param($types, ...$params);
+    }
+    $stmt_ocorrencias->execute();
+    $result = $stmt_ocorrencias->get_result();
     $ocorrencias = $result->fetch_all(MYSQLI_ASSOC);
+    $stmt_ocorrencias->close();
 }
 
-// 4. Busca de estatísticas para o dashboard
+// 5. Busca de estatísticas para o dashboard (com filtros)
 $stats = [
     'pendente' => 0,
     'em_andamento' => 0,
     'resolvido' => 0,
     'total_users' => 0
 ];
+// Contagem de ocorrências por status (considerando os filtros, exceto o de status)
+$where_sql_stats = $where_sql; // Usamos os mesmos filtros de data e tipo
+$params_stats = $params;
+$types_stats = $types;
 
-// Contagem de ocorrências por status
-$result_status = $conn->query("SELECT status, COUNT(id) as total FROM ocorrencias GROUP BY status");
-if ($result_status) {
+$sql_status_count = "SELECT status, COUNT(id) as total FROM ocorrencias o $where_sql_stats GROUP BY status";
+$stmt_status_count = $conn->prepare($sql_status_count);
+if ($stmt_status_count) {
+    if (!empty($params_stats)) {
+        $stmt_status_count->bind_param($types_stats, ...$params_stats);
+    }
+    $stmt_status_count->execute();
+    $result_status = $stmt_status_count->get_result();
     while ($row = $result_status->fetch_assoc()) {
         $key = str_replace(' ', '_', $row['status']); // 'em andamento' -> 'em_andamento'
         if (array_key_exists($key, $stats)) {
             $stats[$key] = $row['total'];
         }
     }
+    $stmt_status_count->close();
 }
 
-// Contagem de usuários
+// Contagem de usuários (não é afetada pelos filtros)
 $result_users = $conn->query("SELECT COUNT(id) as total FROM users WHERE tipo = 'usuario'");
 if ($result_users) {
     $stats['total_users'] = $result_users->fetch_assoc()['total'];
 }
 
-// Ocorrências por tipo (para o gráfico)
+// Ocorrências por tipo para o gráfico (com filtros)
 $ocorrencias_por_tipo = [];
-$result_tipos = $conn->query("SELECT tipo, COUNT(id) as total FROM ocorrencias GROUP BY tipo");
-if ($result_tipos) {
+$sql_tipos = "SELECT tipo, COUNT(id) as total FROM ocorrencias o $where_sql GROUP BY tipo";
+$stmt_tipos = $conn->prepare($sql_tipos);
+if ($stmt_tipos) {
+    if (!empty($params)) {
+        $stmt_tipos->bind_param($types, ...$params);
+    }
+    $stmt_tipos->execute();
+    $result_tipos = $stmt_tipos->get_result();
     $ocorrencias_por_tipo = $result_tipos->fetch_all(MYSQLI_ASSOC);
+    $stmt_tipos->close();
 }
 
-// Histórico de alterações recentes
+// Busca os tipos de ocorrência distintos para o dropdown do filtro
+$tipos_distintos = $conn->query("SELECT DISTINCT tipo FROM ocorrencias ORDER BY tipo ASC")->fetch_all(MYSQLI_ASSOC);
+
+// Histórico de alterações recentes (não é afetado pelos filtros)
 $historico_recente = $conn->query("SELECT l.*, o.tipo as ocorrencia_tipo, u.nome as alterado_por_nome FROM ocorrencias_log l JOIN ocorrencias o ON l.ocorrencia_id = o.id JOIN users u ON l.alterado_por = u.id ORDER BY l.created_at DESC LIMIT 5")->fetch_all(MYSQLI_ASSOC);
 
 
@@ -130,6 +193,39 @@ $status_options = ['pendente', 'em andamento', 'resolvido'];
     <main class="py-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h1 class="text-3xl font-bold text-gray-100 mb-8">Dashboard Administrativo</h1>
+
+            <!-- Seção de Filtros -->
+            <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 mb-8">
+                <form action="admin.php" method="GET" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+                    <div>
+                        <label for="data_inicio" class="block text-sm font-medium text-gray-400">Data Início</label>
+                        <input type="date" name="data_inicio" id="data_inicio" value="<?php echo htmlspecialchars($filtro_data_inicio); ?>" class="mt-1 block w-full rounded-lg bg-gray-700 border-gray-600 text-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                    </div>
+                    <div>
+                        <label for="data_fim" class="block text-sm font-medium text-gray-400">Data Fim</label>
+                        <input type="date" name="data_fim" id="data_fim" value="<?php echo htmlspecialchars($filtro_data_fim); ?>" class="mt-1 block w-full rounded-lg bg-gray-700 border-gray-600 text-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                    </div>
+                    <div>
+                        <label for="tipo" class="block text-sm font-medium text-gray-400">Tipo</label>
+                        <select name="tipo" id="tipo" class="mt-1 block w-full rounded-lg bg-gray-700 border-gray-600 text-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                            <option value="">Todos</option>
+                            <?php foreach ($tipos_distintos as $tipo_opt): ?>
+                                <option value="<?php echo htmlspecialchars($tipo_opt['tipo']); ?>" <?php echo ($filtro_tipo == $tipo_opt['tipo']) ? 'selected' : ''; ?>><?php echo htmlspecialchars(ucfirst($tipo_opt['tipo'])); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="status" class="block text-sm font-medium text-gray-400">Status</label>
+                        <select name="status" id="status" class="mt-1 block w-full rounded-lg bg-gray-700 border-gray-600 text-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                            <option value="">Todos</option>
+                            <?php foreach ($status_options as $status_opt): ?>
+                                <option value="<?php echo htmlspecialchars($status_opt); ?>" <?php echo ($filtro_status == $status_opt) ? 'selected' : ''; ?>><?php echo htmlspecialchars(ucfirst($status_opt)); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="flex gap-2"><button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg text-sm">Filtrar</button><a href="admin.php" class="w-full text-center bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg text-sm">Limpar</a></div>
+                </form>
+            </div>
 
             <!-- Seção de Estatísticas -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
