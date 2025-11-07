@@ -14,7 +14,14 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reportar Ocorrência - IluminAI</title>
     <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+    <!-- CSS e JS do Mapbox Geocoder -->
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css" type="text/css">
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Ajusta o geocoder para o container do mapa */
+        .mapboxgl-ctrl-geocoder { min-width: 100%; }
+    </style>
 </head>
 <body class="bg-gray-900 text-gray-300">
     <!-- Navbar -->
@@ -55,7 +62,7 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
                 <div class="p-4 bg-gray-900 rounded-lg border border-gray-700 space-y-3">
                     <label class="block text-gray-400 text-sm font-bold mb-2">Localização da Ocorrência</label>
                     
-                    <div id="map" class="w-full h-64 rounded-lg border border-gray-600"></div>
+                    <div id="map" class="relative w-full h-64 rounded-lg border border-gray-600"></div>
                     <p class="text-xs text-center text-gray-500 !mt-2">Clique no mapa para definir a localização ou use o botão para obter sua localização atual.</p>
 
                     <button type="button" id="getLocationBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg text-sm transition-colors">Usar minha localização atual</button>
@@ -106,6 +113,20 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
         });
 
         map.addControl(new mapboxgl.NavigationControl(), 'top-left');
+
+        // Adiciona o controle de busca de endereço (Geocoder)
+        const geocoder = new MapboxGeocoder({
+            accessToken: mapboxgl.accessToken,
+            mapboxgl: mapboxgl,
+            marker: false, // Não cria um marcador permanente no resultado
+            placeholder: 'Buscar endereço para centralizar o mapa...',
+            bbox: [-54.80, -2.55, -54.60, -2.33], // Limita a busca à área de Santarém
+            proximity: {
+                longitude: -54.71,
+                latitude: -2.44
+            }
+        });
+        map.addControl(geocoder, 'top-right');
 
         let marker = null;
 
