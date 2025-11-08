@@ -21,6 +21,11 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true){
     <div class="bg-gray-800 border border-gray-700 p-6 rounded-lg shadow-lg w-full max-w-sm">
         <h2 class="text-2xl font-bold mb-6 text-center text-gray-100">Entrar no IluminAI</h2>
         
+        <?php
+        if (isset($_SESSION['success_msg'])) {
+            echo '<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">' . htmlspecialchars($_SESSION['success_msg']) . '</div>';
+            unset($_SESSION['success_msg']);
+        }?>
         <?php 
         if (isset($_SESSION['error_msg'])) {
             echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">' . htmlspecialchars($_SESSION['error_msg']) . '</div>';
@@ -33,11 +38,14 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true){
                 <label for="email" class="block text-gray-400 text-sm font-bold mb-2">E-mail</label>
                 <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($_SESSION['input_email'] ?? ''); ?>" class="bg-gray-900 border border-gray-600 rounded w-full py-2 px-3 text-gray-200 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" required>
             </div>
-            <div class="mb-6">
-                <label for="senha" class="block text-gray-400 text-sm font-bold mb-2">Senha</label>
-                <input type="password" id="senha" name="senha" class="bg-gray-900 border border-gray-600 rounded w-full py-2 px-3 text-gray-200 mb-3 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+            <div class="mb-4">
+                <div class="flex items-center justify-between">
+                    <label for="senha" class="block text-gray-400 text-sm font-bold">Senha</label>
+                    <a href="forgot_password.php" class="text-sm text-blue-500 hover:text-blue-400">Esqueceu a senha?</a>
+                </div>
+                <input type="password" id="senha" name="senha" class="mt-1 bg-gray-900 border border-gray-600 rounded w-full py-2 px-3 text-gray-200 mb-3 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" required>
             </div>
-            <div>
+            <div class="mb-6">
                 <input type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline cursor-pointer" value="Entrar">
             </div>
             <p class="text-center text-sm text-gray-400 mt-6">

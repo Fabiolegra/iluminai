@@ -8,6 +8,9 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     exit;
 }
 
+// Inclui a função de envio de e-mail
+require_once __DIR__ . '/send_email.php';
+
 // Inclui o arquivo de configuração do banco de dados
 require_once __DIR__ . '/../../config/database.php';
 
@@ -55,16 +58,42 @@ if (!empty($error_msg)) {
 }
 
 // 4. Se não houver erros, insere no banco de dados
-$sql = "INSERT INTO users (nome, email, senha, tipo) VALUES (?, ?, ?, ?)";
+$sql = "INSERT INTO users (nome, email, senha, tipo, status, confirmation_token, token_expires_at) VALUES (?, ?, ?, ?, 'pending', ?, ?)";
 if ($stmt = $conn->prepare($sql)) {
     // Criptografa a senha
     $hashed_password = password_hash($senha, PASSWORD_DEFAULT);
     $tipo = 'usuario';
+    $token = bin2hex(random_bytes(32));
+    $expires_at = date('Y-m-d H:i:s', strtotime('+1 hour'));
 
-    $stmt->bind_param("ssss", $nome, $email, $hashed_password, $tipo);
+    $stmt->bind_param("ssssss", $nome, $email, $hashed_password, $tipo, $token, $expires_at);
 
     if ($stmt->execute()) {
-        // Limpa os dados da sessão e redireciona para o login
+        // Envia o e-mail de confirmação
+        $confirmation_link = "http://localhost/iluminai/public/confirm_email.php?token=" . $token;
+        $email_subject = "Confirme sua conta no IluminAI";
+        $email_body = "
+            <h2>Bem-vindo ao IluminAI!</h2>
+            <p>Obrigado por se cadastrar. Por favor, clique no link abaixo para ativar sua conta:</p>
+            <p><a href='{$confirmation_link}' style='padding: 10px 15px; background-color: #2563EB; color: white; text-decoration: none; border-radius: 5px;'>Confirmar E-mail</a></p>
+            <p>Se você não consegue clicar no botão, copie e cole o seguinte link no seu navegador:</p>
+            <p>{$confirmation_link}</p>
+            <p>Este link expira em 1 hora.</p>
+        ";
+
+        if (send_email($email, $email_subject, $email_body)) {
+            $_SESSION['success_msg'] = "Cadastro realizado! Um e-mail de confirmação foi enviado para você. Por favor, verifique sua caixa de entrada.";
+        } else {
+            // Pega a mensagem de erro detalhada da sessão, se existir
+            $detailed_error = $_SESSION['debug_email_error'] ?? 'Erro desconhecido no envio.';
+            unset($_SESSION['debug_email_error']); // Limpa a variável de debug
+
+            $_SESSION['error_msg'] = "Cadastro realizado, mas o e-mail de confirmação falhou. <br><strong>Detalhe técnico:</strong> " . htmlspecialchars($detailed_error);
+            
+            // Como o usuário foi criado, o melhor é redirecionar para o login para ver o erro.
+        }
+
+        // Limpa os dados da sessão e redireciona para o login com a mensagem
         unset($_SESSION['input_nome']);
         unset($_SESSION['input_email']);
         header("location: ../../public/login.php");

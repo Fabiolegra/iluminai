@@ -25,7 +25,7 @@ if (empty($email) || empty($senha)) {
 
 // Se não houver erros de validação, continua
 if (empty($error_msg)) {
-    $sql = "SELECT id, email, senha, tipo FROM users WHERE email = ?";
+    $sql = "SELECT id, email, senha, tipo, status FROM users WHERE email = ?";
 
     if ($stmt = $conn->prepare($sql)) {
         $stmt->bind_param("s", $email);
@@ -34,9 +34,12 @@ if (empty($error_msg)) {
             $stmt->store_result();
 
             if ($stmt->num_rows == 1) {
-                $stmt->bind_result($id, $db_email, $hashed_password, $tipo);
+                $stmt->bind_result($id, $db_email, $hashed_password, $tipo, $status);
                 if ($stmt->fetch()) {
                     if (password_verify($senha, $hashed_password)) {
+                        if ($status === 'pending') {
+                            $error_msg = "Sua conta ainda não foi ativada. Por favor, verifique o e-mail de confirmação.";
+                        } else {
                         // Senha correta, inicia uma nova sessão
                         session_regenerate_id();
                         
@@ -47,6 +50,7 @@ if (empty($error_msg)) {
                         unset($_SESSION['input_email']); // Limpa o e-mail da sessão
                         header("location: ../../public/index.php");
                         exit();
+                        }
                     } else {
                         $error_msg = "A senha que você digitou não é válida.";
                     }

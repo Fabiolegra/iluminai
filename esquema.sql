@@ -14,6 +14,9 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(150) NOT NULL UNIQUE,
     senha VARCHAR(255) NOT NULL,
     tipo ENUM('usuario','admin') NOT NULL DEFAULT 'usuario',
+    status VARCHAR(20) NOT NULL DEFAULT 'pending',
+    confirmation_token VARCHAR(255) NULL DEFAULT NULL,
+    token_expires_at DATETIME NULL DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
@@ -72,3 +75,6 @@ CREATE TABLE IF NOT EXISTS comentarios_visualizacao (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (ocorrencia_id) REFERENCES ocorrencias(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+-- Garante que o usuário admin existente esteja ativo
+UPDATE `users` SET `status` = 'active' WHERE `tipo` = 'admin';
