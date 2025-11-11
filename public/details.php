@@ -277,10 +277,13 @@ unset($_SESSION['success_msg'], $_SESSION['error_msg']);
                         // Mostra o botão se for admin, ou se for o dono e o status for pendente
                         if ($is_admin || ($is_owner && $is_pending)):
                     ?>
-                        <form action="../src/actions/delete_occurrence.php" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir esta ocorrência? Esta ação não pode ser desfeita.');" class="mt-4">
-                            <input type="hidden" name="ocorrencia_id" value="<?php echo $ocorrencia_id; ?>">
-                            <button type="submit" class="w-full text-center bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg text-sm transition-colors">Excluir Ocorrência</button>
-                        </form>
+                        <div class="mt-4 flex flex-col sm:flex-row gap-2">
+                            <a href="edit_occurrence.php?id=<?php echo $ocorrencia_id; ?>" class="flex-1 text-center bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-2 px-4 rounded-lg text-sm transition-colors">Editar</a>
+                            <form action="../src/actions/delete_occurrence.php" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir esta ocorrência? Esta ação não pode ser desfeita.');" class="flex-1">
+                                <input type="hidden" name="ocorrencia_id" value="<?php echo $ocorrencia_id; ?>">
+                                <button type="submit" class="w-full text-center bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg text-sm transition-colors">Excluir</button>
+                            </form>
+                        </div>
                     <?php endif; ?>
                 </div>
             </div>
