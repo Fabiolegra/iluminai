@@ -78,7 +78,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 
 // 3. Busca os detalhes da ocorrência
-$sql_select = "SELECT o.*, u.nome as user_nome 
+$sql_select = "SELECT o.*, u.nome as user_nome
                FROM ocorrencias o 
                JOIN users u ON o.user_id = u.id 
                WHERE o.id = ?";
@@ -196,8 +196,20 @@ unset($_SESSION['success_msg'], $_SESSION['error_msg']);
                     <div><h3 class="text-sm font-semibold text-gray-500">Status</h3><span class="px-3 py-1 text-sm font-semibold rounded-full <?php echo $status_colors[$ocorrencia['status']] ?? 'bg-gray-700 text-gray-200'; ?>"><?php echo htmlspecialchars(ucfirst($ocorrencia['status'])); ?></span></div>
                     <div><h3 class="text-sm font-semibold text-gray-500">Descrição</h3><p class="text-gray-300 whitespace-pre-wrap"><?php echo htmlspecialchars($ocorrencia['descricao']); ?></p></div>
                     
-                    <?php if ($ocorrencia['foto']): ?>
-                        <div><h3 class="text-sm font-semibold text-gray-500 mb-2">Foto</h3><img src="<?php echo htmlspecialchars($ocorrencia['foto']); ?>" alt="Foto da ocorrência" class="rounded-lg max-w-full h-auto border border-gray-700"></div>
+                    <?php
+                        $fotos = array_filter([$ocorrencia['foto1'], $ocorrencia['foto2'], $ocorrencia['foto3']]);
+                        if (!empty($fotos)):
+                    ?>
+                        <div>
+                            <h3 class="text-sm font-semibold text-gray-500 mb-2">Fotos</h3>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                <?php foreach ($fotos as $foto): ?>
+                                    <a href="<?php echo htmlspecialchars($foto); ?>" target="_blank" rel="noopener noreferrer">
+                                        <img src="<?php echo htmlspecialchars($foto); ?>" alt="Foto da ocorrência" class="rounded-lg w-full h-32 object-cover border border-gray-700 hover:opacity-90 transition-opacity">
+                                    </a>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
                     <?php endif; ?>
 
                     <!-- Seção de Comentários -->

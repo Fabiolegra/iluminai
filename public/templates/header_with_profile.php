@@ -10,7 +10,6 @@ $user_id = $_SESSION['user_id'] ?? null;
 $is_admin = (isset($_SESSION['tipo']) && $_SESSION['tipo'] === 'admin');
 $current_page = basename($_SERVER['SCRIPT_NAME']);
 $unread_messages_count = 0;
-$user_avatar = '';
 
 if ($user_id) {
     // Inclui a conexão com o banco de dados se ainda não estiver disponível
@@ -19,23 +18,11 @@ if ($user_id) {
         require_once __DIR__ . '/../../config/database.php';
     }
 
-    // Busca foto de perfil e nome para o avatar
-    $stmt_user_data = $conn->prepare("SELECT nome, foto_perfil FROM users WHERE id = ?");
-    $stmt_user_data->bind_param("i", $user_id);
-    $stmt_user_data->execute();
-    $user_data_result = $stmt_user_data->get_result()->fetch_assoc();
-    $user_nome = $user_data_result['nome'] ?? 'Usuário';
-    $user_foto_perfil = $user_data_result['foto_perfil'] ?? null;
-    $stmt_user_data->close();
-
-    $user_avatar = $user_foto_perfil ? htmlspecialchars($user_foto_perfil) : 'https://ui-avatars.com/api/?name=' . urlencode($user_nome) . '&background=374151&color=d1d5db';
-
     // Lógica para contar mensagens não lidas
     if ($is_admin) {
         // Admin: conta novas mensagens em TODAS as ocorrências que não foram enviadas por ele mesmo
         $sql_unread = "SELECT COUNT(c.id) as total
                        FROM comentarios c
-                       JOIN ocorrencias o ON c.ocorrencia_id = o.id
                        LEFT JOIN comentarios_visualizacao cv ON c.ocorrencia_id = cv.ocorrencia_id AND cv.user_id = ?
                        WHERE c.user_id != ? AND (cv.last_seen_at IS NULL OR c.created_at > cv.last_seen_at)";
         $stmt_unread = $conn->prepare($sql_unread);
@@ -44,11 +31,15 @@ if ($user_id) {
         // Usuário comum: conta novas mensagens apenas nas SUAS ocorrências que não foram enviadas por ele mesmo
         $sql_unread = "SELECT COUNT(c.id) as total
                        FROM comentarios c
+                       JOIN ocorrencias o ON c.ocorrencia_id = o.id
                        LEFT JOIN comentarios_visualizacao cv ON c.ocorrencia_id = cv.ocorrencia_id AND cv.user_id = ?
-                       WHERE c.ocorrencia_id IN (SELECT id FROM ocorrencias WHERE user_id = ?) AND c.user_id != ? AND (cv.last_seen_at IS NULL OR c.created_at > cv.last_seen_at)";
+                       WHERE o.user_id = ? AND c.user_id != ? AND (cv.last_seen_at IS NULL OR c.created_at > cv.last_seen_at)";
         $stmt_unread = $conn->prepare($sql_unread);
         $stmt_unread->bind_param("iii", $user_id, $user_id, $user_id);
     }
+    $stmt_unread->execute();
+    $unread_messages_count = $stmt_unread->get_result()->fetch_assoc()['total'] ?? 0;
+    $stmt_unread->close();
 }
 ?>
 <header>
@@ -68,25 +59,17 @@ if ($user_id) {
             </div>
             <div class="hidden md:block">
                 <div class="ml-10 flex items-baseline space-x-4">
-                    <?php if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true): ?>
-                        <?php if ($is_admin): ?>
-                            <a href="admin.php" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Painel Admin</a>
-                        <?php endif; ?>
-                        <a href="dashboard.php" class="relative text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium" title="Ver minhas ocorrências e mensagens">
-                            <span>Minhas Ocorrências</span>
-                            <?php if ($unread_messages_count > 0): ?>
-                                <span class="absolute top-1 right-0 flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span></span>
-                            <?php endif; ?>
-                        </a>
-                        <a href="profile.php" class="flex items-center gap-2 text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
-                            <img src="<?php echo $user_avatar; ?>" alt="Avatar" class="w-6 h-6 rounded-full object-cover">
-                            <span>Meu Perfil</span>
-                        </a>
-                        <a href="logout.php" class="bg-gray-700 hover:bg-gray-600 text-gray-200 font-semibold py-2 px-4 rounded-lg text-sm">Sair</a>
-                    <?php else: ?>
-                        <a href="login.php" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Login</a>
-                        <a href="register.php" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg text-sm">Criar Conta</a>
+                    <?php if ($is_admin): ?>
+                        <a href="admin.php" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Painel Admin</a>
                     <?php endif; ?>
+                    <a href="profile.php" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Meu Perfil</a>
+                    <a href="dashboard.php" class="relative text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium" title="Ver minhas ocorrências e mensagens">
+                        <span>Minhas Ocorrências</span>
+                        <?php if ($unread_messages_count > 0): ?>
+                            <span class="absolute top-1 right-0 flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span></span>
+                        <?php endif; ?>
+                    </a>
+                    <a href="logout.php" class="bg-gray-700 hover:bg-gray-600 text-gray-200 font-semibold py-2 px-4 rounded-lg text-sm">Sair</a>
                 </div>
             </div>
             <div class="-mr-2 flex md:hidden">
@@ -103,22 +86,17 @@ if ($user_id) {
     <!-- Menu Mobile, mostra/esconde com base no estado do menu. -->
     <div class="hidden md:hidden" id="mobile-menu">
         <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            <?php if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true): ?>
-                <?php if ($is_admin): ?>
-                    <a href="admin.php" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Painel Admin</a>
-                <?php endif; ?>
-                <a href="profile.php" class="flex items-center gap-3 text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">
-                    <img src="<?php echo $user_avatar; ?>" alt="Avatar" class="w-8 h-8 rounded-full object-cover">
-                    <span>Meu Perfil</span>
-                </a>
-                <a href="dashboard.php" class="relative text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">
-                    <span>Minhas Ocorrências</span>
-                    <?php if ($unread_messages_count > 0): ?>
-                        <span class="absolute top-1/2 -translate-y-1/2 right-3 flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span></span>
-                    <?php endif; ?>
-                </a>
-                <a href="logout.php" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Sair</a>
+            <?php if ($is_admin): ?>
+                <a href="admin.php" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Painel Admin</a>
             <?php endif; ?>
+            <a href="profile.php" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Meu Perfil</a>
+            <a href="dashboard.php" class="relative text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">
+                <span>Minhas Ocorrências</span>
+                <?php if ($unread_messages_count > 0): ?>
+                    <span class="absolute top-1/2 -translate-y-1/2 right-3 flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span></span>
+                <?php endif; ?>
+            </a>
+            <a href="logout.php" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Sair</a>
         </div>
     </div>
 </nav>

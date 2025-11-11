@@ -58,6 +58,16 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
                     <textarea id="descricao" name="descricao" rows="4" class="bg-gray-900 border border-gray-600 rounded w-full py-2 px-3 text-gray-200 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" required></textarea>
                 </div>
 
+                <!-- Upload de Fotos -->
+                <div>
+                    <label for="fotos" class="block text-gray-400 text-sm font-bold mb-2">Adicionar Fotos (opcional, até 3 imagens):</label>
+                    <input type="file" id="fotos" name="fotos[]" multiple accept="image/png, image/jpeg" 
+                           class="block w-full text-sm text-gray-400 
+                                  file:mr-4 file:py-2 file:px-4 
+                                  file:rounded-lg file:border-0 file:text-sm file:font-semibold 
+                                  file:bg-blue-600 file:text-white hover:file:bg-blue-700">
+                </div>
+
                 <!-- Localização -->
                 <div class="p-4 bg-gray-900 rounded-lg border border-gray-700 space-y-3">
                     <label class="block text-gray-400 text-sm font-bold mb-2">Localização da Ocorrência</label>

@@ -30,7 +30,9 @@ CREATE TABLE IF NOT EXISTS ocorrencias (
     descricao TEXT NOT NULL,
     latitude DECIMAL(10,7) NOT NULL,
     longitude DECIMAL(10,7) NOT NULL,
-    foto VARCHAR(255),
+    foto1 VARCHAR(255) NULL DEFAULT NULL,
+    foto2 VARCHAR(255) NULL DEFAULT NULL,
+    foto3 VARCHAR(255) NULL DEFAULT NULL,
     status ENUM('pendente','em andamento','resolvido') NOT NULL DEFAULT 'pendente',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -78,3 +80,5 @@ CREATE TABLE IF NOT EXISTS comentarios_visualizacao (
 
 -- Garante que o usuário admin existente esteja ativo
 UPDATE `users` SET `status` = 'active' WHERE `tipo` = 'admin';
+
+ALTER TABLE `users` ADD `foto_perfil` VARCHAR(255) NULL DEFAULT NULL AFTER `tipo`;

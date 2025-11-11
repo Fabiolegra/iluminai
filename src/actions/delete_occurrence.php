@@ -1,6 +1,9 @@
 <?php
 require_once __DIR__ . '/../../bootstrap.php';
 
+use Aws\S3\S3Client;
+use Aws\Exception\AwsException;
+
 // 1. Proteção: Apenas usuários logados podem acessar.
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     header("location: login.php");
@@ -21,8 +24,8 @@ $user_type = $_SESSION['tipo']; // Pega o tipo do usuário (admin ou usuario)
 // Inclui o arquivo de conexão com o banco de dados
 require_once __DIR__ . '/../../config/database.php';
 
-// 3. Verificação de permissão: Busca a ocorrência para verificar o dono, o status e a foto.
-$sql_check = "SELECT user_id, status, foto FROM ocorrencias WHERE id = ?";
+// 3. Verificação de permissão: Busca a ocorrência para verificar o dono, o status e as fotos.
+$sql_check = "SELECT user_id, status, foto1, foto2, foto3 FROM ocorrencias WHERE id = ?";
 if ($stmt_check = $conn->prepare($sql_check)) {
     $stmt_check->bind_param("i", $ocorrencia_id);
     $stmt_check->execute();
@@ -51,13 +54,38 @@ if ($stmt_check = $conn->prepare($sql_check)) {
         if ($stmt_delete = $conn->prepare($sql_delete)) {
             $stmt_delete->bind_param("i", $ocorrencia_id);
             if ($stmt_delete->execute()) {
-                // 5. Exclusão do arquivo de foto (se existir)
-                // O caminho da foto é relativo à pasta 'public', então precisamos ajustar para o contexto do script
-                $foto_path_from_root = __DIR__ . '/../../public/' . $ocorrencia['foto'];
-                if (!empty($ocorrencia['foto']) && file_exists($foto_path_from_root)) {
-                    unlink($foto_path_from_root);
-                } elseif (!empty($ocorrencia['foto']) && file_exists($ocorrencia['foto'])) { // Fallback para caminho relativo
-                    unlink($ocorrencia['foto']);
+                // 5. Exclusão das fotos do S3 (se existirem)
+                $fotos_para_deletar = array_filter([$ocorrencia['foto1'], $ocorrencia['foto2'], $ocorrencia['foto3']]);
+
+                if (!empty($fotos_para_deletar)) {
+                    try {
+                        $s3Client = new S3Client([
+                            'version'     => 'latest',
+                            'region'      => $_ENV['AWS_REGION'],
+                            'credentials' => [
+                                'key'    => $_ENV['AWS_ACCESS_KEY_ID'],
+                                'secret' => $_ENV['AWS_SECRET_ACCESS_KEY'],
+                            ],
+                        ]);
+                        $bucket = $_ENV['AWS_BUCKET'];
+
+                        $objects_to_delete = [];
+                        foreach ($fotos_para_deletar as $foto_url) {
+                            $key = ltrim(parse_url($foto_url, PHP_URL_PATH), '/');
+                            $objects_to_delete[] = ['Key' => $key];
+                        }
+
+                        $s3Client->deleteObjects([
+                            'Bucket' => $bucket,
+                            'Delete' => [
+                                'Objects' => $objects_to_delete,
+                            ],
+                        ]);
+                    } catch (AwsException $e) {
+                        // Mesmo que a exclusão no S3 falhe, a ocorrência no DB foi excluída.
+                        // Apenas registra o erro para depuração.
+                        error_log("Erro ao deletar objetos do S3: " . $e->getMessage());
+                    }
                 }
                 $_SESSION['success_msg'] = "Ocorrência excluída com sucesso.";
             } else {
