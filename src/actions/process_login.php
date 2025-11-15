@@ -15,8 +15,8 @@ require_once __DIR__ . '/../../config/database.php';
 $_SESSION['input_email'] = $_POST['email'] ?? '';
 
 $error_msg = "";
-$email = trim($_POST["email"]);
-$senha = $_POST["senha"];
+$email = trim($_POST["email"] ?? '');
+$senha = $_POST["senha"] ?? '';
 
 // Valida se os campos não estão vazios
 if (empty($email) || empty($senha)) {

@@ -40,6 +40,14 @@ if ($user_id) {
                        WHERE c.user_id != ? AND (cv.last_seen_at IS NULL OR c.created_at > cv.last_seen_at)";
         $stmt_unread = $conn->prepare($sql_unread);
         $stmt_unread->bind_param("ii", $user_id, $user_id);
+    } elseif ((isset($_SESSION['tipo']) && $_SESSION['tipo'] === 'operador')) {
+        // Operador: conta novas mensagens em ocorrências atribuídas a ele
+        $sql_unread = "SELECT COUNT(c.id) as total
+                       FROM comentarios c
+                       LEFT JOIN comentarios_visualizacao cv ON c.ocorrencia_id = cv.ocorrencia_id AND cv.user_id = ?
+                       WHERE c.ocorrencia_id IN (SELECT id FROM ocorrencias WHERE operador_id = ?) AND c.user_id != ? AND (cv.last_seen_at IS NULL OR c.created_at > cv.last_seen_at)";
+        $stmt_unread = $conn->prepare($sql_unread);
+        $stmt_unread->bind_param("iii", $user_id, $user_id, $user_id);
     } else {
         // Usuário comum: conta novas mensagens apenas nas SUAS ocorrências que não foram enviadas por ele mesmo
         $sql_unread = "SELECT COUNT(c.id) as total
@@ -71,6 +79,7 @@ if ($user_id) {
                     <?php if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true): ?>
                         <?php if ($is_admin): ?>
                             <a href="admin.php" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Painel Admin</a>
+                            <a href="manage_users.php" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Gerenciar Usuários</a>
                         <?php endif; ?>
                         <a href="dashboard.php" class="relative text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium" title="Ver minhas ocorrências e mensagens">
                             <span>Minhas Ocorrências</span>
@@ -106,6 +115,7 @@ if ($user_id) {
             <?php if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true): ?>
                 <?php if ($is_admin): ?>
                     <a href="admin.php" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Painel Admin</a>
+                    <a href="manage_users.php" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Gerenciar Usuários</a>
                 <?php endif; ?>
                 <a href="profile.php" class="flex items-center gap-3 text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">
                     <img src="<?php echo $user_avatar; ?>" alt="Avatar" class="w-8 h-8 rounded-full object-cover">

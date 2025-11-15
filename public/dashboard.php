@@ -13,6 +13,7 @@ require_once __DIR__ . '/../config/database.php';
 
 $user_id = $_SESSION['user_id'];
 $is_admin = ($_SESSION['tipo'] === 'admin');
+$is_operator = ($_SESSION['tipo'] === 'operador');
 $ocorrencias = [];
 
 if ($is_admin) {
@@ -26,6 +27,16 @@ if ($is_admin) {
             ORDER BY unread_count DESC, last_comment_at DESC";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("ii", $user_id, $user_id);
+} elseif ($is_operator) {
+    // Para Operadores: Busca as ocorrências atribuídas a ele.
+    $sql = "SELECT o.id, o.tipo, o.status, o.created_at, u.nome as user_nome,
+            (SELECT COUNT(c.id) FROM comentarios c LEFT JOIN comentarios_visualizacao cv ON c.ocorrencia_id = cv.ocorrencia_id AND cv.user_id = ? WHERE c.ocorrencia_id = o.id AND c.user_id != ?) as unread_count
+            FROM ocorrencias o
+            JOIN users u ON o.user_id = u.id
+            WHERE o.operador_id = ?
+            ORDER BY unread_count DESC, o.updated_at DESC";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("iii", $user_id, $user_id, $user_id);
 } else {
     // Para Usuários Comuns: Busca suas próprias ocorrências, com contagem de mensagens não lidas.
     $sql = "SELECT o.id, o.tipo, o.status, o.created_at,
@@ -67,8 +78,10 @@ $status_colors = [
     <main class="py-10">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center mb-6">
-                <h1 class="text-3xl font-bold text-gray-100"><?php echo $is_admin ? 'Conversas Ativas' : 'Minhas Ocorrências'; ?></h1>
-                <a href="report.php" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow">Nova Ocorrência</a>
+                <h1 class="text-3xl font-bold text-gray-100"><?php echo $is_admin ? 'Conversas Ativas' : ($is_operator ? 'Ocorrências Atribuídas' : 'Minhas Ocorrências'); ?></h1>
+                <?php if (!$is_operator): ?>
+                    <a href="report.php" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow">Nova Ocorrência</a>
+                <?php endif; ?>
             </div>
 
             <?php if (isset($_SESSION['success_msg'])): ?>
@@ -80,7 +93,7 @@ $status_colors = [
             <div class="bg-gray-800 border border-gray-700 shadow-lg rounded-lg overflow-hidden">
                 <div class="divide-y divide-gray-700">
                     <?php if (empty($ocorrencias)): ?>
-                        <p class="p-6 text-center text-gray-400"><?php echo $is_admin ? 'Nenhuma conversa ativa no momento.' : 'Você ainda não reportou nenhuma ocorrência.'; ?></p>
+                        <p class="p-6 text-center text-gray-400"><?php echo $is_admin ? 'Nenhuma conversa ativa no momento.' : ($is_operator ? 'Nenhuma ocorrência atribuída a você no momento.' : 'Você ainda não reportou nenhuma ocorrência.'); ?></p>
                     <?php else: ?>
                         <?php foreach ($ocorrencias as $ocorrencia): ?>
                             <div class="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between hover:bg-gray-700/50 transition-colors">
@@ -94,7 +107,7 @@ $status_colors = [
                                         </a>
                                     </div>
                                     <p class="text-sm text-gray-400 mt-1 ml-1">
-                                        <?php if ($is_admin): ?>
+                                        <?php if ($is_admin || $is_operator): ?>
                                             Reportado por <strong><?php echo htmlspecialchars($ocorrencia['user_nome']); ?></strong> em <?php echo date('d/m/Y', strtotime($ocorrencia['created_at'])); ?>
                                         <?php else: ?>
                                             Reportado em: <?php echo date('d/m/Y \à\s H:i', strtotime($ocorrencia['created_at'])); ?>

@@ -6,6 +6,13 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     header("location: login.php");
     exit;
 }
+
+// Operadores não podem criar ocorrências
+if (isset($_SESSION['tipo']) && $_SESSION['tipo'] === 'operador') {
+    $_SESSION['error_msg'] = "Operadores não têm permissão para criar ocorrências.";
+    header("location: login.php");
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">

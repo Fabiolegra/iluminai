@@ -22,7 +22,11 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
   <style>
     body { margin:0; padding:0; font-family: Arial, sans-serif; }
     #map { position: absolute; top: 0; bottom: 0; width: 100%; }
-    /* Estilo do marcador no mapa */
+    /* Estilo dos marcadores no mapa */
+    .marker-assigned {
+        border: 3px solid white;
+        box-shadow: 0 0 10px 3px #ffffff70;
+    }
     .marker-icon { width: 32px; height: 32px; background: #1f2937; /* bg-gray-800 */ border: 1px solid #4b5563; /* bg-gray-600 */ border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.4); cursor: pointer; }
     .marker-icon svg { width: 18px; height: 18px; }
     
@@ -69,10 +73,12 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
   <!-- O mapa ocupa a tela inteira -->
   <div id="map"></div>
 
-  <!-- Botão Flutuante para Reportar Problema -->
-  <a href="report.php" class="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-500 text-white font-bold p-4 rounded-full shadow-lg z-10 flex items-center justify-center" title="Reportar Problema">
-    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-  </a>
+  <?php if ($_SESSION['tipo'] !== 'operador'): ?>
+    <!-- Botão Flutuante para Reportar Problema -->
+    <a href="report.php" class="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-500 text-white font-bold p-4 rounded-full shadow-lg z-10 flex items-center justify-center" title="Reportar Problema">
+      <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+    </a>
+  <?php endif; ?>
 
   <!-- Painel para exibir informações da rota -->
   <div id="route-panel">
@@ -165,11 +171,13 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
             return;
           }
           data.forEach(ocorrencia => {
-            // Verifica se o usuário atual pode ver os detalhes (é admin ou o dono)
-            const canSeeDetails = currentUserType === 'admin' || currentUserId === ocorrencia.user_id;
+            const isAssignedOperator = currentUserType === 'operador' && currentUserId === ocorrencia.operador_id;
+            // Verifica se o usuário atual pode ver os detalhes (admin, dono ou operador atribuído)
+            const canSeeDetails = currentUserType === 'admin' || currentUserId === ocorrencia.user_id || isAssignedOperator;
             
             let detailsLink = '';
             if (canSeeDetails) {
+              // Para o operador, o link de detalhes só aparece se a ocorrência for dele
               detailsLink = `<a href="details.php?id=${ocorrencia.id}" class="bg-gray-600 text-white text-xs font-bold py-1 px-2 rounded hover:bg-gray-700">Detalhes</a>`;
             }
 
@@ -198,7 +206,17 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
             // Cria o elemento do marcador personalizado
             const el = document.createElement('div');
             el.className = 'marker-icon';
-            el.innerHTML = typeIcons[ocorrencia.tipo] || typeIcons['iluminacao apagada']; // Icone padrão
+            // Adiciona uma classe e animação de destaque se for uma ocorrência do operador
+            let animationHTML = '';
+            if (isAssignedOperator) {
+                el.classList.add('marker-assigned');
+                animationHTML = '<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>';
+            }
+            // Adiciona a animação (se houver) e o ícone. 
+            // O ícone é envolvido por um span relativo para que a animação absoluta funcione corretamente por trás.
+            const iconSVG = typeIcons[ocorrencia.tipo] || typeIcons['iluminacao apagada'];
+            // A animação é adicionada primeiro, e o ícone depois, dentro de um span relativo.
+            el.innerHTML = `${animationHTML}<span class="relative flex justify-center items-center">${iconSVG}</span>`;
             
             // Pega o SVG dentro do elemento e aplica a cor do status
             const svg = el.getElementsByTagName('svg')[0];

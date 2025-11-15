@@ -19,9 +19,56 @@ $ocorrencia_id = intval($_GET['id']);
 // Inclui o arquivo de configuração do banco de dados
 require_once __DIR__ . '/../config/database.php';
 
+// 3. Busca os detalhes da ocorrência (movido para cima para usar nas validações de POST)
+$sql_select = "SELECT o.*, u.nome as user_nome, op.nome as operador_nome
+               FROM ocorrencias o 
+               JOIN users u ON o.user_id = u.id 
+               LEFT JOIN users op ON o.operador_id = op.id
+               WHERE o.id = ?";
+$ocorrencia = null;
+if ($stmt = $conn->prepare($sql_select)) {
+    $stmt->bind_param("i", $ocorrencia_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($result->num_rows === 1) {
+        $ocorrencia = $result->fetch_assoc();
+    }
+    $stmt->close();
+}
+
+// Variáveis de permissão
+$is_admin = ($_SESSION['tipo'] ?? 'usuario') === 'admin';
+$is_owner = $ocorrencia ? ($_SESSION['user_id'] === $ocorrencia['user_id']) : false;
+$is_assigned_operator = $ocorrencia ? ($_SESSION['user_id'] === $ocorrencia['operador_id']) : false;
+
 // 2. Processamento do formulário de atualização de status (APENAS PARA ADMINS)
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    if (isset($_POST['status']) && $_SESSION['tipo'] === 'admin') {
+    // 2.1 Processamento de atribuição de operador (APENAS PARA ADMINS)
+    if (isset($_POST['assign_operator']) && $_SESSION['tipo'] === 'admin') {
+        $operador_id = filter_input(INPUT_POST, 'operador_id', FILTER_VALIDATE_INT);
+
+        if ($operador_id) {
+            // Atualiza a ocorrência com o operador e muda o status para "em andamento"
+            $sql_assign = "UPDATE ocorrencias SET operador_id = ?, status = 'em andamento' WHERE id = ?";
+            if ($stmt_assign = $conn->prepare($sql_assign)) {
+                $stmt_assign->bind_param("ii", $operador_id, $ocorrencia_id);
+                if ($stmt_assign->execute()) {
+                    $_SESSION['success_msg'] = "Operador atribuído e status alterado para 'Em andamento'.";
+                    // Adicionar ao log (opcional, mas recomendado)
+                } else {
+                    $_SESSION['error_msg'] = "Erro ao atribuir operador.";
+                }
+                $stmt_assign->close();
+            }
+        } else {
+            $_SESSION['error_msg'] = "ID de operador inválido.";
+        }
+        header("location: details.php?id=" . $ocorrencia_id);
+        exit;
+    }
+
+    // 2.2 Processamento de mudança de status (Admin ou Operador)
+    if (isset($_POST['status'])) {
         $novo_status = $_POST['status'];
         $status_permitidos = ['pendente', 'em andamento', 'resolvido'];
 
@@ -34,8 +81,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $status_anterior = $result_status->fetch_assoc()['status'];
         $stmt_get->close();
 
+        // Verifica permissão para alterar o status
+        $can_update_status = ($is_admin) || // Admin pode sempre
+                             ($is_assigned_operator && $novo_status === 'resolvido'); // Operador só pode marcar como resolvido
+
+
         // Só executa se o status for diferente e válido
-        if (in_array($novo_status, $status_permitidos) && $novo_status !== $status_anterior) {
+        if ($can_update_status && in_array($novo_status, $status_permitidos) && $novo_status !== $status_anterior) {
             $sql_update = "UPDATE ocorrencias SET status = ? WHERE id = ?";
             if ($stmt = $conn->prepare($sql_update)) {
                 $stmt->bind_param("si", $novo_status, $ocorrencia_id);
@@ -54,14 +106,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $stmt->close();
             }
         } else {
-            $_SESSION['error_msg'] = "Status inválido ou idêntico ao atual.";
+            $_SESSION['error_msg'] = "Status inválido, idêntico ao atual ou você não tem permissão para esta ação.";
         }
         // Redireciona para a própria página para ver o resultado
         header("location: details.php?id=" . $ocorrencia_id);
         exit;
     }
 
-    // 2.1 Processamento do formulário de novo comentário
+    // 2.2 Processamento do formulário de novo comentário
     if (isset($_POST['comentario'])) {
         $comentario_texto = trim($_POST['comentario']);
         if (!empty($comentario_texto)) {
@@ -77,20 +129,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     exit;
 }
 
-// 3. Busca os detalhes da ocorrência
-$sql_select = "SELECT o.*, u.nome as user_nome
-               FROM ocorrencias o 
-               JOIN users u ON o.user_id = u.id 
-               WHERE o.id = ?";
-$ocorrencia = null;
-if ($stmt = $conn->prepare($sql_select)) {
-    $stmt->bind_param("i", $ocorrencia_id);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    if ($result->num_rows === 1) {
-        $ocorrencia = $result->fetch_assoc();
+// 3.0 Busca a lista de operadores para o admin poder atribuir
+$operadores = [];
+if (($_SESSION['tipo'] ?? 'usuario') === 'admin') {
+    $sql_operadores = "SELECT id, nome FROM users WHERE tipo = 'operador' AND status = 'active'";
+    $result_operadores = $conn->query($sql_operadores);
+    if ($result_operadores) {
+        $operadores = $result_operadores->fetch_all(MYSQLI_ASSOC);
     }
-    $stmt->close();
 }
 
 // 3.1 Busca o histórico de status da ocorrência
@@ -141,7 +187,7 @@ if ($ocorrencia === null) {
     exit;
 }
 
-if ($_SESSION['tipo'] !== 'admin' && $_SESSION['user_id'] !== $ocorrencia['user_id']) {
+if (!$is_admin && !$is_owner && !$is_assigned_operator) {
     // Se não for admin E não for o dono da ocorrência, nega o acesso.
     $_SESSION['error_msg'] = "Acesso negado. Você não tem permissão para ver esta ocorrência.";
     header("location: index.php");
@@ -194,6 +240,7 @@ unset($_SESSION['success_msg'], $_SESSION['error_msg']);
                 <div class="space-y-4 md:col-span-2">
                     <div><h3 class="text-sm font-semibold text-gray-500">Tipo</h3><p class="text-lg text-gray-100 capitalize"><?php echo htmlspecialchars($ocorrencia['tipo']); ?></p></div>
                     <div><h3 class="text-sm font-semibold text-gray-500">Status</h3><span class="px-3 py-1 text-sm font-semibold rounded-full <?php echo $status_colors[$ocorrencia['status']] ?? 'bg-gray-700 text-gray-200'; ?>"><?php echo htmlspecialchars(ucfirst($ocorrencia['status'])); ?></span></div>
+                    <?php if ($ocorrencia['operador_nome']): ?><div><h3 class="text-sm font-semibold text-gray-500">Operador Responsável</h3><p class="text-gray-200"><?php echo htmlspecialchars($ocorrencia['operador_nome']); ?></p></div><?php endif; ?>
                     <div><h3 class="text-sm font-semibold text-gray-500">Descrição</h3><p class="text-gray-300 whitespace-pre-wrap"><?php echo htmlspecialchars($ocorrencia['descricao']); ?></p></div>
                     
                     <?php
@@ -255,24 +302,49 @@ unset($_SESSION['success_msg'], $_SESSION['error_msg']);
                 <!-- Coluna do Mapa e Ações -->
                 <div class="md:col-span-3 space-y-6">
                     <!-- Formulário de Ação para Admin -->
-                    <?php if (($_SESSION['tipo'] ?? 'usuario') === 'admin'): ?>
+                    <?php if ($is_admin): ?>
                         <div class="bg-gray-900 p-4 rounded-lg border border-gray-700">
-                            <h3 class="text-lg font-semibold text-gray-200 mb-3">Alterar Status</h3>
-                            <form action="details.php?id=<?php echo $ocorrencia_id; ?>" method="POST" class="flex items-center gap-2">
-                                <select name="status" class="block w-full rounded-lg border-gray-600 bg-gray-800 text-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
-                                    <?php foreach ($status_options as $option): ?>
-                                        <option value="<?php echo $option; ?>" <?php echo ($ocorrencia['status'] == $option) ? 'selected' : ''; ?>><?php echo ucfirst($option); ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                                <button type="submit" class="px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Salvar</button>
+                            <h3 class="text-lg font-semibold text-gray-200 mb-3">Ações do Administrador</h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <!-- Atribuir Operador -->
+                                <form action="details.php?id=<?php echo $ocorrencia_id; ?>" method="POST">
+                                    <label for="operador_id" class="block text-sm font-medium text-gray-400 mb-1">Atribuir Operador</label>
+                                    <div class="flex items-center gap-2">
+                                        <select id="operador_id" name="operador_id" class="block w-full rounded-lg border-gray-600 bg-gray-800 text-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm" <?php echo empty($operadores) ? 'disabled' : ''; ?>>
+                                            <option value="">Selecione um operador</option>
+                                            <?php foreach ($operadores as $operador): ?>
+                                                <option value="<?php echo $operador['id']; ?>" <?php echo ($ocorrencia['operador_id'] == $operador['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($operador['nome']); ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                        <button type="submit" name="assign_operator" class="px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Atribuir</button>
+                                    </div>
+                                    <?php if (empty($operadores)): ?><p class="text-xs text-gray-500 mt-1">Nenhum operador ativo encontrado.</p><?php endif; ?>
+                                </form>
+                                <!-- Alterar Status Manualmente -->
+                                <form action="details.php?id=<?php echo $ocorrencia_id; ?>" method="POST">
+                                    <label for="status" class="block text-sm font-medium text-gray-400 mb-1">Alterar Status Manual</label>
+                                    <div class="flex items-center gap-2">
+                                        <select id="status" name="status" class="block w-full rounded-lg border-gray-600 bg-gray-800 text-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                            <?php foreach ($status_options as $option): ?><option value="<?php echo $option; ?>" <?php echo ($ocorrencia['status'] == $option) ? 'selected' : ''; ?>><?php echo ucfirst($option); ?></option><?php endforeach; ?>
+                                        </select>
+                                        <button type="submit" class="px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-gray-600 hover:bg-gray-700">Salvar</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    <?php elseif ($is_assigned_operator && $ocorrencia['status'] === 'em andamento'): ?>
+                        <!-- Ação para Operador -->
+                        <div class="bg-gray-900 p-4 rounded-lg border border-gray-700">
+                            <h3 class="text-lg font-semibold text-gray-200 mb-3">Ações do Operador</h3>
+                            <form action="details.php?id=<?php echo $ocorrencia_id; ?>" method="POST" onsubmit="return confirm('Tem certeza que deseja marcar esta ocorrência como resolvida?');">
+                                <input type="hidden" name="status" value="resolvido">
+                                <button type="submit" class="w-full text-center bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg text-sm transition-colors">Marcar como Resolvido</button>
                             </form>
                         </div>
                     <?php endif; ?>
 
                     <!-- Formulário de Exclusão para Admin ou Dono -->
                     <?php
-                        $is_owner = ($_SESSION['user_id'] === $ocorrencia['user_id']);
-                        $is_admin = ($_SESSION['tipo'] === 'admin');
                         $is_pending = ($ocorrencia['status'] === 'pendente');
                         // Mostra o botão se for admin, ou se for o dono e o status for pendente
                         if ($is_admin || ($is_owner && $is_pending)):
