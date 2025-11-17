@@ -30,12 +30,14 @@ if ($stmt_check = $conn->prepare($sql_check)) {
         echo "<div class='bg-yellow-500/20 border border-yellow-500/30 text-yellow-400 px-4 py-3 rounded' role='alert'><strong>Aviso:</strong> O usuário administrador com o e-mail '<strong>" . htmlspecialchars($admin_email) . "</strong>' já existe no banco de dados. Nenhuma ação foi tomada.</div>";
     } else {
         // 2. Usuário não existe, então vamos criá-lo
-        $sql_insert = "INSERT INTO users (nome, email, senha, tipo, status) VALUES (?, ?, ?, 'admin', 'active')";
+        $sql_insert = "INSERT INTO users (nome, email, senha, tipo, status) VALUES (?, ?, ?, ?, ?)";
         if ($stmt_insert = $conn->prepare($sql_insert)) {
             // Criptografa a senha
             $hashed_password = password_hash($admin_senha_texto_plano, PASSWORD_DEFAULT);
+            $tipo = 'admin';
+            $status = 'active';
 
-            $stmt_insert->bind_param("sss", $admin_nome, $admin_email, $hashed_password);
+            $stmt_insert->bind_param("sssss", $admin_nome, $admin_email, $hashed_password, $tipo, $status);
 
             if ($stmt_insert->execute()) {
                 echo "<div class='bg-green-500/20 border border-green-500/30 text-green-400 px-4 py-3 rounded' role='alert'><strong>Sucesso!</strong> Usuário administrador criado.<br><strong>E-mail:</strong> " . htmlspecialchars($admin_email) . "<br><strong>Senha:</strong> " . htmlspecialchars($admin_senha_texto_plano) . "</div>";
