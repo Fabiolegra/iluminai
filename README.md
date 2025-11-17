@@ -2,7 +2,7 @@
 
 > Uma plataforma web colaborativa para reportar e gerenciar ocorrências de iluminação pública de forma inteligente, segura e geolocalizada.
 
-**[➡️ Acessar a Demonstração Online](https://iluminai.42web.io/iluminai/)**
+**[➡️ Acessar a Demonstração Online](https://iluminai.ct.ws/)**
 
 ## 📖 Sobre
 
