@@ -17,7 +17,15 @@ $stmt->bind_param("s", $token);
 $stmt->execute();
 $result = $stmt->get_result();
 
-if ($result->num_rows !== 1 || strtotime($result->fetch_assoc()['token_expires_at']) <= time()) {
+// Validação do token e da expiração com tratamento de fuso horário
+$user = $result->fetch_assoc();
+$is_invalid = true; // Assume que é inválido por padrão
+if ($user) {
+    $expires_at = new DateTime($user['token_expires_at'], new DateTimeZone('America/Sao_Paulo'));
+    $now = new DateTime('now', new DateTimeZone('America/Sao_Paulo'));
+    if ($expires_at > $now) $is_invalid = false;
+}
+if ($is_invalid) {
     $_SESSION['error_msg'] = "Token inválido ou expirado. Por favor, solicite um novo link de redefinição.";
     header("location: forgot_password.php");
     exit;

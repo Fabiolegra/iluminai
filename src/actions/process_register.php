@@ -70,16 +70,17 @@ if ($stmt = $conn->prepare($sql)) {
 
     if ($stmt->execute()) {
         // Envia o e-mail de confirmação
-        $confirmation_link = "http://localhost/iluminai/public/confirm_email.php?token=" . $token;
+        $base_url = rtrim($_ENV['APP_URL'], '/'); // Garante que não haja barras duplicadas
+        $confirmation_link = $base_url . "/public/confirm_email.php?token=" . $token;
         $email_subject = "Confirme sua conta no IluminAI";
         $email_body = "
             <h2>Bem-vindo ao IluminAI!</h2>
             <p>Obrigado por se cadastrar. Por favor, clique no link abaixo para ativar sua conta:</p>
             <p><a href='{$confirmation_link}' style='padding: 10px 15px; background-color: #2563EB; color: white; text-decoration: none; border-radius: 5px;'>Confirmar E-mail</a></p>
             <p>Se você não consegue clicar no botão, copie e cole o seguinte link no seu navegador:</p>
-            <p>{$confirmation_link}</p>
+            <p>" . htmlspecialchars($confirmation_link) . "</p>
             <p>Este link expira em 1 hora.</p>
-        ";
+        "; // A string agora usa aspas duplas para interpolação
 
         if (send_email($email, $email_subject, $email_body)) {
             $_SESSION['success_msg'] = "Cadastro realizado! Um e-mail de confirmação foi enviado para você. Por favor, verifique sua caixa de entrada.";
