@@ -305,7 +305,7 @@ unset($_SESSION['success_msg'], $_SESSION['error_msg']);
                     <?php if ($is_admin): ?>
                         <div class="bg-gray-900 p-4 rounded-lg border border-gray-700">
                             <h3 class="text-lg font-semibold text-gray-200 mb-3">Ações do Administrador</h3>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-1 gap-4">
                                 <!-- Atribuir Operador -->
                                 <form action="details.php?id=<?php echo $ocorrencia_id; ?>" method="POST">
                                     <label for="operador_id" class="block text-sm font-medium text-gray-400 mb-1">Atribuir Operador</label>
@@ -321,15 +321,6 @@ unset($_SESSION['success_msg'], $_SESSION['error_msg']);
                                     <?php if (empty($operadores)): ?><p class="text-xs text-gray-500 mt-1">Nenhum operador ativo encontrado.</p><?php endif; ?>
                                 </form>
                                 <!-- Alterar Status Manualmente -->
-                                <form action="details.php?id=<?php echo $ocorrencia_id; ?>" method="POST">
-                                    <label for="status" class="block text-sm font-medium text-gray-400 mb-1">Alterar Status Manual</label>
-                                    <div class="flex items-center gap-2">
-                                        <select id="status" name="status" class="block w-full rounded-lg border-gray-600 bg-gray-800 text-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
-                                            <?php foreach ($status_options as $option): ?><option value="<?php echo $option; ?>" <?php echo ($ocorrencia['status'] == $option) ? 'selected' : ''; ?>><?php echo ucfirst($option); ?></option><?php endforeach; ?>
-                                        </select>
-                                        <button type="submit" class="px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-gray-600 hover:bg-gray-700">Salvar</button>
-                                    </div>
-                                </form>
                             </div>
                         </div>
                     <?php elseif ($is_assigned_operator && $ocorrencia['status'] === 'em andamento'): ?>
