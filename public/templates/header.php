@@ -62,7 +62,7 @@ if ($user_id) {
 <header>
 <nav class="bg-gray-800 border-b border-gray-700">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-16">
+        <div class="flex items-center justify-between h-16 w-full">
             <div class="flex items-center">
                 <div class="flex-shrink-0 flex items-center gap-4">
                     <?php if ($current_page !== 'index.php'): ?>
