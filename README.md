@@ -16,16 +16,21 @@ Administradores possuem um painel para visualizar todas as ocorrências, alterar
 *   **Confirmação de E-mail:** Novos usuários precisam validar seu e-mail para ativar a conta.
 *   **Recuperação de Senha:** Fluxo completo de "esqueci minha senha" com envio de link seguro por e-mail.
 *   **Perfis de Usuário:** Distinção entre `usuário` (cidadão) e `admin` (gestor).
+*   **Perfis de Usuário:** Três níveis de acesso: `usuário` (cidadão), `operador` (equipe de campo) e `admin` (gestor).
 *   **Gerenciamento de Perfil:** Usuários podem alterar seu nome, senha e foto de perfil.
 *   **Reporte Georreferenciado:** Formulário para criar ocorrências com tipo, descrição, até 3 fotos e localização precisa no mapa (clique ou geolocalização do navegador).
+*   **Edição de Ocorrências:** Usuários podem editar suas próprias ocorrências enquanto o status for "pendente". Administradores podem editar a qualquer momento.
 *   **Upload de Imagens para a Nuvem:** As fotos de ocorrências e de perfil são armazenadas de forma segura em um bucket **AWS S3**.
 *   **Mapa Interativo (Mapbox):** Visualização de todas as ocorrências, com ícones e cores que representam o tipo e o status do problema.
 *   **Painel do Usuário (`Minhas Ocorrências`):** Área onde os cidadãos podem acompanhar o status e interagir em suas ocorrências, com indicadores de mensagens não lidas.
+*   **Painel do Operador:** Dashboard focado nas ocorrências que foram atribuídas ao operador, permitindo que ele as marque como "resolvidas".
 *   **Painel Administrativo Avançado:**
     *   Dashboard com estatísticas (ocorrências pendentes, em andamento, resolvidas).
     *   Filtros por data, tipo e status.
     *   Gráfico de ocorrências por tipo (`Chart.js`).
     *   Tabela para gerenciamento rápido de status.
+    *   **Gerenciamento de Ocorrências:** Tabela para alterar status e atribuir ocorrências a operadores.
+    *   **Gerenciamento de Usuários:** Painel para criar, visualizar, filtrar (por e-mail e tipo) e excluir operadores.
     *   **Traçar Rota:** Admins podem traçar uma rota de sua localização atual até uma ocorrência diretamente no mapa.
 *   **Sistema de Chat por Ocorrência:** Área de comentários para comunicação entre o usuário e os administradores.
 *   **Histórico de Status:** Log de todas as alterações de status de uma ocorrência para rastreabilidade.
@@ -162,6 +167,8 @@ O banco de dados é composto por 5 tabelas principais:
 
 *   `users`: Armazena os dados dos usuários (comuns e administradores).
 *   `ocorrencias`: Tabela central que guarda todas as ocorrências reportadas, incluindo tipo, descrição, localização e status.
+*   `users`: Armazena os dados dos usuários (`usuario`, `operador` e `admin`).
+*   `ocorrencias`: Tabela central que guarda todas as ocorrências reportadas, incluindo tipo, descrição, localização, status e o `operador_id` atribuído.
 *   `ocorrencias_log`: Registra o histórico de mudanças de status de cada ocorrência, garantindo rastreabilidade.
 *   `comentarios`: Armazena as mensagens trocadas dentro de uma ocorrência, formando o sistema de chat.
 *   `comentarios_visualizacao`: Controla quais comentários já foram lidos por cada usuário em cada ocorrência.
