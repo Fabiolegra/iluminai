@@ -15,7 +15,6 @@ Administradores possuem um painel para visualizar todas as ocorrências, alterar
 *   **Autenticação Completa:** Sistema seguro de cadastro, login e logout.
 *   **Confirmação de E-mail:** Novos usuários precisam validar seu e-mail para ativar a conta.
 *   **Recuperação de Senha:** Fluxo completo de "esqueci minha senha" com envio de link seguro por e-mail.
-*   **Perfis de Usuário:** Distinção entre `usuário` (cidadão) e `admin` (gestor).
 *   **Perfis de Usuário:** Três níveis de acesso: `usuário` (cidadão), `operador` (equipe de campo) e `admin` (gestor).
 *   **Gerenciamento de Perfil:** Usuários podem alterar seu nome, senha e foto de perfil.
 *   **Reporte Georreferenciado:** Formulário para criar ocorrências com tipo, descrição, até 3 fotos e localização precisa no mapa (clique ou geolocalização do navegador).
@@ -173,25 +172,6 @@ O banco de dados é composto por 5 tabelas principais:
 *   `comentarios`: Armazena as mensagens trocadas dentro de uma ocorrência, formando o sistema de chat.
 *   `comentarios_visualizacao`: Controla quais comentários já foram lidos por cada usuário em cada ocorrência.
 
----
-
-## 📡 Endpoints da API
-
-A aplicação possui um endpoint principal para alimentar o mapa com os dados das ocorrências.
-
-#### `GET /public/occurrences.php`
-
-Retorna um JSON com a lista de todas as ocorrências cadastradas.
-
-*   **Proteção:** Requer que o usuário esteja autenticado.
-*   **Resposta (Sucesso):**
-    ```json
-    [
-      { "id": 1, "user_id": 2, "tipo": "iluminacao apagada", "descricao": "Poste em frente ao número 123.", "latitude": "-2.4400", "longitude": "-54.7100", "status": "pendente" },
-      { ... }
-    ]
-    ```
----
 
 ## 🤝 Contribuição
 
