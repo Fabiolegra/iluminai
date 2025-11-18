@@ -13,7 +13,7 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
 // 2. Validação: A requisição deve ser POST e conter um ID de ocorrência válido.
 if ($_SERVER["REQUEST_METHOD"] !== "POST" || !isset($_POST['ocorrencia_id']) || !filter_var($_POST['ocorrencia_id'], FILTER_VALIDATE_INT)) {
     $_SESSION['error_msg'] = "Requisição inválida.";
-    header("location: ../../public/dashboard.php");
+    header("location: ../../public/my_occurrence.php");
     exit;
 }
 

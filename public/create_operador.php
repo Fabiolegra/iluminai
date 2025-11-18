@@ -27,7 +27,7 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !isset($_
             <div class="bg-gray-800 border border-gray-700 p-6 rounded-lg shadow-lg">
                 <h1 class="text-2xl font-bold text-gray-100 mb-6">Criar Novo Operador</h1>
 
-                <form action="../src/actions/process_create_user.php" method="post" class="space-y-4">
+                <form action="../src/actions/process_create_operador.php" method="post" class="space-y-4">
                     <div>
                         <label for="nome" class="block text-gray-400 text-sm font-bold mb-2">Nome Completo</label>
                         <input type="text" id="nome" name="nome" class="bg-gray-900 border border-gray-600 rounded w-full py-2 px-3 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500" required>

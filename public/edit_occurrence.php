@@ -32,7 +32,7 @@ $is_pending = ($ocorrencia['status'] === 'pendente');
 
 if (!$ocorrencia || !($is_admin || ($is_owner && $is_pending))) {
     $_SESSION['error_msg'] = "Você não tem permissão para editar esta ocorrência ou ela não está mais pendente.";
-    header("location: dashboard.php");
+    header("location: my_occurrence.php");
     exit;
 }
 

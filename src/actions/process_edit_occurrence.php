@@ -10,7 +10,7 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    header("location: ../../public/dashboard.php");
+    header("location: ../../public/my_occurrence.php");
     exit;
 }
 
@@ -19,7 +19,7 @@ require_once __DIR__ . '/../../config/database.php';
 $ocorrencia_id = filter_input(INPUT_POST, 'ocorrencia_id', FILTER_VALIDATE_INT);
 if (!$ocorrencia_id) {
     $_SESSION['error_msg'] = "ID de ocorrência inválido.";
-    header("location: ../../public/dashboard.php");
+    header("location: ../../public/my_occurrence.php");
     exit;
 }
 
@@ -37,7 +37,7 @@ $is_pending = ($ocorrencia['status'] === 'pendente');
 
 if (!$ocorrencia || !($is_admin || ($is_owner && $is_pending))) {
     $_SESSION['error_msg'] = "Você não tem permissão para editar esta ocorrência.";
-    header("location: ../../public/dashboard.php");
+    header("location: ../../public/my_occurrence.php");
     exit;
 }
 

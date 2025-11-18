@@ -46,7 +46,7 @@ if (isset($_SESSION['tipo']) && $_SESSION['tipo'] === 'operador') {
             }
             ?>
 
-            <form action="../src/actions/process_report.php" method="post" enctype="multipart/form-data" class="space-y-6" novalidate>
+            <form action="../src/actions/process_report_occurrence.php" method="post" enctype="multipart/form-data" class="space-y-6" novalidate>
                 <!-- Tipo do Problema -->
                 <div>
                     <label for="tipo" class="block text-gray-400 text-sm font-bold mb-2">Tipo do Problema:</label>

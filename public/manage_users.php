@@ -55,7 +55,7 @@ $users = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
     <main class="py-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center mb-8"><h1 class="text-3xl font-bold text-gray-100">Gerenciar Usuários</h1><a href="create_user.php" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg text-sm">Criar Novo Operador</a></div>
+            <div class="flex justify-between items-center mb-8"><h1 class="text-3xl font-bold text-gray-100">Gerenciar Usuários</h1><a href="create_operador.php" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg text-sm">Criar Novo Operador</a></div>
             <?php
             if (isset($_SESSION['success_msg'])) {
                 echo '<div class="bg-green-500/20 border border-green-500/30 text-green-400 px-4 py-3 rounded-lg relative mb-4" role="alert">' . htmlspecialchars($_SESSION['success_msg']) . '</div>';
@@ -124,7 +124,7 @@ $users = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400"><?php echo date('d/m/Y', strtotime($user['created_at'])); ?></td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 space-x-2">
-                                        <a href="view_user.php?id=<?php echo $user['id']; ?>" class="text-blue-400 hover:text-blue-300">Perfil</a>
+                                        <a href="details_profile.php?id=<?php echo $user['id']; ?>" class="text-blue-400 hover:text-blue-300">Perfil</a>
                                         <?php if ($user['tipo'] === 'operador'): ?>
                                             <form action="../src/actions/delete_user.php" method="POST" class="inline-block" onsubmit="return confirm('Tem certeza que deseja excluir este operador? As ocorrências atribuídas a ele serão desvinculadas.');">
                                                 <input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">

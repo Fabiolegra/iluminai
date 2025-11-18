@@ -78,10 +78,10 @@ if ($user_id) {
                 <div class="ml-10 flex items-baseline space-x-4">
                     <?php if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true): ?>
                         <?php if ($is_admin): ?>
-                            <a href="admin.php" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Painel Admin</a>
+                            <a href="dashboard_admin.php" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Painel Admin</a>
                             <a href="manage_users.php" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Gerenciar Usuários</a>
                         <?php endif; ?>
-                        <a href="dashboard.php" class="relative text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium" title="Ver minhas ocorrências e mensagens">
+                        <a href="my_occurrence.php" class="relative text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium" title="Ver minhas ocorrências e mensagens">
                             <span>Minhas Ocorrências</span>
                             <?php if ($unread_messages_count > 0): ?>
                                 <span class="absolute top-1 right-0 flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span></span>
@@ -114,14 +114,14 @@ if ($user_id) {
         <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             <?php if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true): ?>
                 <?php if ($is_admin): ?>
-                    <a href="admin.php" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Painel Admin</a>
+                    <a href="dashboard_admin.php" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Painel Admin</a>
                     <a href="manage_users.php" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Gerenciar Usuários</a>
                 <?php endif; ?>
                 <a href="profile.php" class="flex items-center gap-3 text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">
                     <img src="<?php echo $user_avatar; ?>" alt="Avatar" class="w-8 h-8 rounded-full object-cover">
                     <span>Meu Perfil</span>
                 </a>
-                <a href="dashboard.php" class="relative text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">
+                <a href="my_occurrence.php" class="relative text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">
                     <span>Minhas Ocorrências</span>
                     <?php if ($unread_messages_count > 0): ?>
                         <span class="absolute top-1/2 -translate-y-1/2 right-3 flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span></span>

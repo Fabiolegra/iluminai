@@ -11,7 +11,7 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    header("location: ../../public/report.php");
+    header("location: ../../public/report_occurrence.php");
     exit;
 }
 
@@ -28,7 +28,7 @@ $foto_paths = [null, null, null]; // Array para armazenar os caminhos das 3 foto
 
 if (empty($tipo) || empty($descricao) || empty($latitude) || empty($longitude)) {
     $_SESSION['error_msg'] = "Por favor, preencha todos os campos obrigatórios (tipo, descrição e localização).";
-    header("location: ../../public/report.php");
+    header("location: ../../public/report_occurrence.php");
     exit;
 }
 
@@ -39,7 +39,7 @@ if (isset($_FILES['fotos']) && !empty(array_filter($_FILES['fotos']['name']))) {
 
     if ($file_count > 3) {
         $_SESSION['error_msg'] = "Você pode enviar no máximo 3 imagens.";
-        header("location: ../../public/report.php");
+        header("location: ../../public/report_occurrence.php");
         exit;
     }
 
@@ -66,13 +66,13 @@ if (isset($_FILES['fotos']) && !empty(array_filter($_FILES['fotos']['name']))) {
 
         if (!in_array($file_ext, $allowed_exts)) {
             $_SESSION['error_msg'] = "Formato de arquivo inválido. Apenas JPG e PNG são permitidos.";
-            header("location: ../../public/report.php");
+            header("location: ../../public/report_occurrence.php");
             exit;
         }
 
         if ($file_size > $max_size) {
             $_SESSION['error_msg'] = "Um dos arquivos é muito grande. O tamanho máximo por arquivo é de 2MB.";
-            header("location: ../../public/report.php");
+            header("location: ../../public/report_occurrence.php");
             exit;
         }
 
@@ -92,7 +92,7 @@ if (isset($_FILES['fotos']) && !empty(array_filter($_FILES['fotos']['name']))) {
             }
         } catch (AwsException $e) {
             $_SESSION['error_msg'] = "Erro ao fazer upload de uma das imagens: " . $e->getMessage();
-            header("location: ../../public/report.php");
+            header("location: ../../public/report_occurrence.php");
             exit;
         }
     }
@@ -125,17 +125,17 @@ if ($stmt = $conn->prepare($sql)) {
         // Fim da adição ao log
 
         $_SESSION['success_msg'] = "Ocorrência reportada com sucesso!";
-        header("location: ../../public/dashboard.php");
+        header("location: ../../public/my_occurrence.php");
         exit();
     } else {
         $_SESSION['error_msg'] = "Erro ao salvar a ocorrência no banco de dados.";
-        header("location: ../../public/report.php");
+        header("location: ../../public/report_occurrence.php");
         exit;
     }
     $stmt->close();
 } else {
     $_SESSION['error_msg'] = "Erro ao preparar a consulta ao banco de dados.";
-    header("location: ../../public/report.php");
+    header("location: ../../public/report_occurrence.php");
     exit;
 }
 

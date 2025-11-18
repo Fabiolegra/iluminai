@@ -80,7 +80,7 @@ $status_colors = [
             <div class="flex justify-between items-center mb-6">
                 <h1 class="text-3xl font-bold text-gray-100"><?php echo $is_admin ? 'Conversas Ativas' : ($is_operator ? 'Ocorrências Atribuídas' : 'Minhas Ocorrências'); ?></h1>
                 <?php if (!$is_operator): ?>
-                    <a href="report.php" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow">Nova Ocorrência</a>
+                    <a href="report_occurrence.php" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow">Nova Ocorrência</a>
                 <?php endif; ?>
             </div>
 
