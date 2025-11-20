@@ -1,3 +1,4 @@
+autor: Fabio Argel Ribeiro de Lima
 # IluminAI - Gestão de Ocorrências de Iluminação Pública
 
 > Uma plataforma web colaborativa para reportar e gerenciar ocorrências de iluminação pública de forma inteligente, segura e geolocalizada.
