@@ -1,7 +1,7 @@
 <?php
 /**
  * Este arquivo é responsável apenas pela apresentação (HTML).
- * Toda a lógica de negócio e busca de dados é feita em `logic_details_profile.php`.
+ * Toda a lógica de negócio e busca de dados é feita em `logic_details.php`.
  */
 require_once __DIR__ . '/../src/actions/logic_details.php';
 ?>
