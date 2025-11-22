@@ -57,6 +57,16 @@ if ($user_id) {
         $stmt_unread = $conn->prepare($sql_unread);
         $stmt_unread->bind_param("iii", $user_id, $user_id, $user_id);
     }
+
+    // Conta avisos não lidos
+    $unread_notices_count = 0;
+    $sql_notices = "SELECT COUNT(*) as total FROM avisos WHERE user_id = ? AND lido = FALSE";
+    $stmt_notices = $conn->prepare($sql_notices);
+    $stmt_notices->bind_param("i", $user_id);
+    $stmt_notices->execute();
+    $notices_result = $stmt_notices->get_result()->fetch_assoc();
+    $unread_notices_count = $notices_result['total'];
+    $stmt_notices->close();
 }
 ?>
 <header>
@@ -80,6 +90,7 @@ if ($user_id) {
                         <?php if ($is_admin): ?>
                             <a href="dashboard_admin.php" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Painel Admin</a>
                             <a href="manage_users.php" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Gerenciar Usuários</a>
+                            <a href="admin_notices.php" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Avisos</a>
                         <?php endif; ?>
                         <a href="my_occurrence.php" class="relative text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium" title="Ver minhas ocorrências e mensagens">
                             <span>Minhas Ocorrências</span>
@@ -87,6 +98,14 @@ if ($user_id) {
                                 <span class="absolute top-1 right-0 flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span></span>
                             <?php endif; ?>
                         </a>
+                        <?php if (!$is_admin): ?>
+                            <a href="notices.php" class="relative text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium" title="Ver meus avisos">
+                                <span>Avisos</span>
+                                <?php if ($unread_notices_count > 0): ?>
+                                    <span class="absolute top-1 right-0 flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-yellow-500"></span></span>
+                                <?php endif; ?>
+                            </a>
+                        <?php endif; ?>
                         <a href="profile.php" class="flex items-center gap-2 text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
                             <img src="<?php echo $user_avatar; ?>" alt="Avatar" class="w-6 h-6 rounded-full object-cover">
                             <span>Meu Perfil</span>
@@ -116,6 +135,7 @@ if ($user_id) {
                 <?php if ($is_admin): ?>
                     <a href="dashboard_admin.php" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Painel Admin</a>
                     <a href="manage_users.php" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Gerenciar Usuários</a>
+                    <a href="admin_notices.php" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Avisos</a>
                 <?php endif; ?>
                 <a href="profile.php" class="flex items-center gap-3 text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">
                     <img src="<?php echo $user_avatar; ?>" alt="Avatar" class="w-8 h-8 rounded-full object-cover">
@@ -127,6 +147,14 @@ if ($user_id) {
                         <span class="absolute top-1/2 -translate-y-1/2 right-3 flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span></span>
                     <?php endif; ?>
                 </a>
+                <?php if (!$is_admin): ?>
+                    <a href="notices.php" class="relative text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">
+                        <span>Avisos</span>
+                        <?php if ($unread_notices_count > 0): ?>
+                            <span class="absolute top-1/2 -translate-y-1/2 right-3 flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-yellow-500"></span></span>
+                        <?php endif; ?>
+                    </a>
+                <?php endif; ?>
                 <a href="logout.php" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Sair</a>
             <?php endif; ?>
         </div>

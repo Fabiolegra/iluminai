@@ -81,5 +81,20 @@ CREATE TABLE IF NOT EXISTS comentarios_visualizacao (
     FOREIGN KEY (ocorrencia_id) REFERENCES ocorrencias(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+-- ========================================
+-- Tabela: avisos (notificações do admin)
+-- ========================================
+CREATE TABLE IF NOT EXISTS avisos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    admin_id INT NOT NULL,
+    assunto VARCHAR(255) NOT NULL,
+    mensagem TEXT NOT NULL,
+    lido BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (admin_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 -- Garante que o usuário admin existente esteja ativo
 UPDATE `users` SET `status` = 'active' WHERE `tipo` = 'admin';
