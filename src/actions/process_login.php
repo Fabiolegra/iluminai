@@ -39,6 +39,8 @@ if (empty($error_msg)) {
                     if (password_verify($senha, $hashed_password)) {
                         if ($status === 'pending') {
                             $error_msg = "Sua conta ainda não foi ativada. Por favor, verifique o e-mail de confirmação.";
+                        } elseif ($status === 'blocked') {
+                            $error_msg = "Sua conta foi bloqueada. Entre em contato com o administrador.";
                         } else {
                         // Senha correta, inicia uma nova sessão
                         session_regenerate_id();
