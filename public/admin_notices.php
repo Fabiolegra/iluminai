@@ -159,6 +159,7 @@ require_once __DIR__ . '/../src/actions/logic_admin_notices.php';
             </div>
             <form method="post" action="../src/actions/send_notice.php" class="p-6 space-y-4">
                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
+                <input type="hidden" name="type" value="single">
                 
                 <div>
                     <label class="block text-gray-400 text-sm font-bold mb-2">Selecione o Usuário</label>
@@ -194,8 +195,9 @@ require_once __DIR__ . '/../src/actions/logic_admin_notices.php';
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
-            <form method="post" action="../src/actions/send_notice_group.php" class="p-6 space-y-4">
+            <form method="post" action="../src/actions/send_notice.php" class="p-6 space-y-4">
                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
+                <input type="hidden" name="type" value="group">
                 
                 <div>
                     <label class="block text-gray-400 text-sm font-bold mb-2">Selecione o Tipo de Usuário</label>
@@ -236,8 +238,9 @@ require_once __DIR__ . '/../src/actions/logic_admin_notices.php';
             </div>
             <div class="p-6">
                 <p class="text-gray-400 text-sm mb-6">Este aviso será enviado para <strong>todos os usuários do sistema</strong>.</p>
-                <form method="post" action="../src/actions/send_notice_all.php" class="space-y-4">
+                <form method="post" action="../src/actions/send_notice.php" class="space-y-4">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
+                    <input type="hidden" name="type" value="all">
                     
                     <div>
                         <label class="block text-gray-400 text-sm font-bold mb-2">Assunto</label>
