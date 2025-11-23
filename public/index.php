@@ -47,46 +47,20 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     }
     /* Customização do Geocoder */
     .mapboxgl-ctrl-geocoder input {
-        background-color: #1f2937 !important;
-        color: #d1d5db !important;
-        border: 2px solid #4b5563 !important;
-        border-radius: 0.5rem !important;
         padding: 0.75rem 1rem !important;
-        padding-right: 2.5rem !important;
+        padding-right: 3.5rem !important;
         font-size: 0.95rem !important;
         transition: all 0.3s ease !important;
     }
-    .mapboxgl-ctrl-geocoder input:focus {
-        background-color: #111827 !important;
-        color: #ffffff !important;
-        border-color: #3b82f6 !important;
-        box-shadow: 0 0 10px rgba(59, 130, 246, 0.3) !important;
-        outline: none !important;
-    }
     .mapboxgl-ctrl-geocoder input::placeholder {
-        color: #f2f4f7ff !important;
+        opacity: 1 !important;
     }
     .mapboxgl-ctrl-geocoder button {
-        background-color: #3b82f6 !important;
-        border: none !important;
-    }
-    .mapboxgl-ctrl-geocoder button:hover {
-        background-color: #2563eb !important;
-    }
-    .mapboxgl-ctrl-geocoder .suggestions {
-        background-color: #1f2937 !important;
-        border: 1px solid #374151 !important;
-        border-radius: 0.5rem !important;
+        margin-right: 0.5rem !important;
     }
     .mapboxgl-ctrl-geocoder .suggestions > div {
-        color: #d1d5db !important;
-        border-bottom: 1px solid #374151 !important;
-        padding: 0.75rem 1rem !important;
-        cursor: pointer !important;
-    }
-    .mapboxgl-ctrl-geocoder .suggestions > div:hover {
-        background-color: #374151 !important;
-        color: #ffffff !important;
+        color: #fbbf24 !important;
+        font-weight: 700 !important;
     }
     /* Ajuste para o Geocoder não ficar sob o header */
     .mapboxgl-ctrl-top-left {
@@ -240,6 +214,34 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     // map.addControl(new mapboxgl.NavigationControl(), 'top-left');
     // Adiciona um novo controle de atribuição compacto, que não inclui o link "Improve this map"
     map.addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-right');
+
+    // Estiliza as sugestões do Geocoder com JavaScript
+    geocoder.on('result', () => {
+        setTimeout(() => {
+            const suggestions = document.querySelectorAll('.mapboxgl-ctrl-geocoder .suggestions > div');
+            suggestions.forEach(div => {
+                div.style.backgroundColor = '#020617';
+                div.style.color = '#fbbf24';
+                div.style.fontWeight = '700';
+            });
+        }, 100);
+    });
+    
+    // Monitora mudanças nas sugestões quando o usuário digita
+    geocoder.on('input', () => {
+        setTimeout(() => {
+            const suggestionsContainer = document.querySelector('.mapboxgl-ctrl-geocoder .suggestions');
+            if (suggestionsContainer) {
+                suggestionsContainer.style.backgroundColor = '#020617';
+                const suggestions = suggestionsContainer.querySelectorAll('> div');
+                suggestions.forEach(div => {
+                    div.style.backgroundColor = '#020617';
+                    div.style.color = '#fbbf24';
+                    div.style.fontWeight = '700';
+                });
+            }
+        }, 50);
+    });
 
     // Adiciona o controle para o usuário ver sua própria localização
     const geolocate = new mapboxgl.GeolocateControl({
