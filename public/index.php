@@ -45,10 +45,56 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
         width: 100%;
         max-width: 350px;
     }
+    /* Customização do Geocoder */
+    .mapboxgl-ctrl-geocoder input {
+        background-color: #1f2937 !important;
+        color: #d1d5db !important;
+        border: 2px solid #4b5563 !important;
+        border-radius: 0.5rem !important;
+        padding: 0.75rem 1rem !important;
+        padding-right: 2.5rem !important;
+        font-size: 0.95rem !important;
+        transition: all 0.3s ease !important;
+    }
+    .mapboxgl-ctrl-geocoder input:focus {
+        background-color: #111827 !important;
+        color: #ffffff !important;
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 10px rgba(59, 130, 246, 0.3) !important;
+        outline: none !important;
+    }
+    .mapboxgl-ctrl-geocoder input::placeholder {
+        color: #f2f4f7ff !important;
+    }
+    .mapboxgl-ctrl-geocoder button {
+        background-color: #3b82f6 !important;
+        border: none !important;
+    }
+    .mapboxgl-ctrl-geocoder button:hover {
+        background-color: #2563eb !important;
+    }
+    .mapboxgl-ctrl-geocoder .suggestions {
+        background-color: #1f2937 !important;
+        border: 1px solid #374151 !important;
+        border-radius: 0.5rem !important;
+    }
+    .mapboxgl-ctrl-geocoder .suggestions > div {
+        color: #d1d5db !important;
+        border-bottom: 1px solid #374151 !important;
+        padding: 0.75rem 1rem !important;
+        cursor: pointer !important;
+    }
+    .mapboxgl-ctrl-geocoder .suggestions > div:hover {
+        background-color: #374151 !important;
+        color: #ffffff !important;
+    }
     /* Ajuste para o Geocoder não ficar sob o header */
-    .mapboxgl-ctrl-top-right {
+    .mapboxgl-ctrl-top-left {
         margin-top: 5rem; /* 80px, para dar espaço abaixo do header h-16 (64px) */
-        margin-right: 1rem;
+        margin-left: 1rem;
+    }
+    .mapboxgl-ctrl-top-right {
+        display: none;
     }
     .toast { visibility: hidden; min-width: 250px; margin-left: -125px; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 20; left: 50%; top: 80px; font-size: 17px; opacity: 0; transition: opacity 0.5s, top 0.5s; }
     .toast.show { visibility: visible; opacity: 1; top: 100px; }
@@ -61,6 +107,60 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     #route-panel p { margin-bottom: 0.25rem; }
     #route-panel button { width: 100%; background-color: #4b5563; /* bg-gray-600 */ padding: 0.5rem; border-radius: 0.375rem; margin-top: 0.75rem; }
     #route-panel button:hover { background-color: #6b7280; /* bg-gray-500 */ }
+
+    /* Painel de Filtros para Operador */
+    #filter-panel { position: fixed; top: 140px; right: 20px; z-index: 20; background-color: #1f2937; color: #d1d5db; padding: 1rem; border-radius: 0.5rem; border: 1px solid #374151; box-shadow: 0 4px 6px rgba(0,0,0,0.3); display: none; }
+    #filter-panel h3 { font-weight: bold; font-size: 0.9rem; margin-bottom: 0.75rem; color: #ffffff; }
+    #filter-panel label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; margin-bottom: 0.5rem; font-size: 0.9rem; }
+    #filter-panel input[type="radio"] { cursor: pointer; }
+    #filter-panel label:hover { color: #ffffff; }
+
+    /* Responsivo para dispositivos menores */
+    @media (max-width: 768px) {
+        .mapboxgl-ctrl-geocoder { max-width: 280px; }
+        .mapboxgl-ctrl-geocoder input { padding: 0.6rem 0.8rem !important; font-size: 0.9rem !important; }
+        .mapboxgl-ctrl-geocoder .suggestions > div { padding: 0.6rem 0.8rem !important; font-size: 0.9rem !important; }
+        
+        #filter-panel { top: 80px; right: 10px; padding: 0.75rem; width: 200px; }
+        #filter-panel h3 { font-size: 0.8rem; margin-bottom: 0.5rem; }
+        #filter-panel label { font-size: 0.8rem; margin-bottom: 0.4rem; }
+        
+        #route-panel { bottom: 80px; left: 10px; right: 10px; max-width: none; }
+        
+        .mapboxgl-popup-content { max-width: 250px; font-size: 0.9rem; }
+        .mapboxgl-popup-content .font-bold { font-size: 0.95rem; }
+        .mapboxgl-popup-content .text-xs { font-size: 0.7rem; }
+        
+        .marker-icon { width: 28px; height: 28px; }
+        .marker-icon svg { width: 16px; height: 16px; }
+        
+        a[href="report_occurrence.php"] { width: 48px !important; height: 48px !important; bottom: 20px; right: 20px; }
+        a[href="report_occurrence.php"] svg { width: 24px; height: 24px; }
+    }
+
+    @media (max-width: 480px) {
+        .mapboxgl-ctrl-geocoder { max-width: calc(100% - 30px); left: 15px; right: 15px; }
+        .mapboxgl-ctrl-geocoder input { padding: 0.5rem 0.7rem !important; font-size: 0.85rem !important; }
+        .mapboxgl-ctrl-geocoder .suggestions > div { padding: 0.5rem 0.7rem !important; font-size: 0.8rem !important; }
+        
+        #filter-panel { top: 70px; right: 5px; left: 5px; width: auto; padding: 0.5rem; }
+        #filter-panel h3 { font-size: 0.75rem; margin-bottom: 0.4rem; }
+        #filter-panel label { font-size: 0.75rem; gap: 0.3rem; }
+        
+        #route-panel { bottom: 70px; left: 5px; right: 5px; padding: 0.75rem; max-width: none; font-size: 0.85rem; }
+        #route-panel h3 { font-size: 0.9rem; margin-bottom: 0.3rem; }
+        #route-panel button { padding: 0.4rem; font-size: 0.8rem; }
+        
+        .mapboxgl-popup-content { max-width: 220px; font-size: 0.85rem; padding: 0.5rem; }
+        .mapboxgl-popup-content .font-bold { font-size: 0.9rem; }
+        .mapboxgl-popup-content a, .mapboxgl-popup-content button { font-size: 0.65rem; padding: 0.4px 0.8px; }
+        
+        .marker-icon { width: 24px; height: 24px; }
+        .marker-icon svg { width: 14px; height: 14px; }
+        
+        a[href="report_occurrence.php"] { width: 44px !important; height: 44px !important; bottom: 16px; right: 16px; }
+        a[href="report_occurrence.php"] svg { width: 20px; height: 20px; }
+    }
   </style>
 </head>
 <body>
@@ -69,13 +169,28 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
   <div class="absolute top-0 left-0 right-0 z-10 bg-gray-900/80 backdrop-blur-sm border-b border-gray-700">
       <?php require_once 'templates/header.php'; ?>
   </div>
+
+  <!-- Painel de Filtros para Operador -->
+  <?php if ($_SESSION['tipo'] === 'operador'): ?>
+    <div id="filter-panel">
+      <h3>Filtrar Ocorrências</h3>
+      <label>
+        <input type="radio" name="filter" value="all" checked onchange="updateOccurrencesFilter(this.value)">
+        Todas as Ocorrências
+      </label>
+      <label>
+        <input type="radio" name="filter" value="mine" onchange="updateOccurrencesFilter(this.value)">
+        Minhas Ocorrências
+      </label>
+    </div>
+  <?php endif; ?>
   
   <!-- O mapa ocupa a tela inteira -->
   <div id="map"></div>
 
   <?php if ($_SESSION['tipo'] !== 'operador'): ?>
     <!-- Botão Flutuante para Reportar Problema -->
-    <a href="report_occurrence.php" class="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-500 text-white font-bold p-4 rounded-full shadow-lg z-10 flex items-center justify-center" title="Reportar Problema">
+    <a href="report_occurrence.php" class="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-full shadow-lg z-10 flex items-center justify-center transition-all" style="width: 56px; height: 56px;" title="Reportar Problema">
       <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
     </a>
   <?php endif; ?>
@@ -107,7 +222,7 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     });
 
     // Adiciona os controles de navegação (zoom, rotação)
-    map.addControl(new mapboxgl.NavigationControl(), 'top-left');
+    // map.addControl(new mapboxgl.NavigationControl(), 'top-left');
 
     // Adiciona o controle de busca de endereço (Geocoder)
     const geocoder = new MapboxGeocoder({
@@ -121,8 +236,8 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
             latitude: -2.44
         }
     });
-    map.addControl(geocoder, 'top-right');
-    map.addControl(new mapboxgl.NavigationControl(), 'top-left');
+    map.addControl(geocoder, 'top-left');
+    // map.addControl(new mapboxgl.NavigationControl(), 'top-left');
     // Adiciona um novo controle de atribuição compacto, que não inclui o link "Improve this map"
     map.addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-right');
 
@@ -134,7 +249,38 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
         trackUserLocation: true, // Segue a localização do usuário
         showUserHeading: true    // Mostra a direção que o usuário está virado
     });
-    map.addControl(geolocate, 'top-left');
+    map.addControl(geolocate, 'bottom-right');
+
+    // Variável global para armazenar o marcador do usuário
+    window.userLocationMarker = null;
+
+    // Event listener para quando a localização é obtida com sucesso
+    map.on('geolocate', function(e) {
+        const coords = e.coords;
+        console.log('Posição do usuário:', coords.latitude, coords.longitude);
+        
+        // Remove marcador anterior se existir
+        if (window.userLocationMarker) {
+            window.userLocationMarker.remove();
+        }
+        
+        // Cria um marcador customizado para a localização do usuário
+        const userEl = document.createElement('div');
+        userEl.style.width = '30px';
+        userEl.style.height = '30px';
+        userEl.style.backgroundColor = '#3B82F6';
+        userEl.style.borderRadius = '50%';
+        userEl.style.border = '3px solid white';
+        userEl.style.boxShadow = '0 0 10px rgba(59, 130, 246, 0.5)';
+        userEl.style.cursor = 'pointer';
+        userEl.className = 'user-location-marker';
+        
+        // Adiciona o marcador ao mapa
+        window.userLocationMarker = new mapboxgl.Marker(userEl)
+            .setLngLat([coords.longitude, coords.latitude])
+            .setPopup(new mapboxgl.Popup().setText('Sua Localização Atual'))
+            .addTo(map);
+    });
     
     // Mapeamento de status para cores dos ícones
     const statusColors = {
@@ -182,8 +328,8 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
             }
 
             let traceRouteButton = '';
-            if (currentUserType === 'admin') {
-                // Passa as coordenadas para a função traceRoute
+            if (currentUserType === 'admin' || currentUserType === 'operador') {
+                // Passa as coordenadas para a função traceRoute (admin e operador)
                 traceRouteButton = `<button onclick="traceRoute([${ocorrencia.longitude}, ${ocorrencia.latitude}])" class="bg-blue-600 text-white text-xs font-bold py-1 px-2 rounded hover:bg-blue-700">Traçar Rota</button>`;
             }
 
@@ -205,7 +351,7 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
 
             // Cria o elemento do marcador personalizado
             const el = document.createElement('div');
-            el.className = 'marker-icon';
+            el.className = 'marker-icon occurrence-marker';
             // Adiciona uma classe e animação de destaque se for uma ocorrência do operador
             let animationHTML = '';
             if (isAssignedOperator) {
@@ -233,6 +379,88 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
         })
         .catch(error => console.error('Erro na requisição AJAX:', error));
     });
+
+    // --- LÓGICA DE FILTRO PARA OPERADORES ---
+    let currentFilter = 'all';
+
+    function updateOccurrencesFilter(filter) {
+        currentFilter = filter;
+        
+        // Remove apenas os marcadores de ocorrências (não remove o marcador de localização do usuário)
+        const occurrenceMarkers = document.querySelectorAll('.occurrence-marker');
+        occurrenceMarkers.forEach(marker => {
+            marker.remove();
+        });
+        
+        // Busca as ocorrências com o filtro aplicado
+        const url = currentUserType === 'operador' ? `occurrences.php?filter=${filter}` : 'occurrences.php';
+        
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.error('Erro ao buscar ocorrências:', data.error);
+                    return;
+                }
+                
+                // Re-adiciona os marcadores com o filtro aplicado
+                data.forEach(ocorrencia => {
+                    const isAssignedOperator = currentUserType === 'operador' && currentUserId === ocorrencia.operador_id;
+                    const canSeeDetails = currentUserType === 'admin' || currentUserId === ocorrencia.user_id || isAssignedOperator;
+                    
+                    let detailsLink = '';
+                    if (canSeeDetails) {
+                        detailsLink = `<a href="details.php?id=${ocorrencia.id}" class="bg-gray-600 text-white text-xs font-bold py-1 px-2 rounded hover:bg-gray-700">Detalhes</a>`;
+                    }
+
+                    let traceRouteButton = '';
+                    if (currentUserType === 'admin' || currentUserType === 'operador') {
+                        traceRouteButton = `<button onclick="traceRoute([${ocorrencia.longitude}, ${ocorrencia.latitude}])" class="bg-blue-600 text-white text-xs font-bold py-1 px-2 rounded hover:bg-blue-700">Traçar Rota</button>`;
+                    }
+
+                    const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
+                        `<div class="space-y-2 text-sm">
+                             <h3 class="font-bold text-base text-gray-100 capitalize">${ocorrencia.tipo}</h3>
+                             <p class="text-gray-400 leading-tight">${ocorrencia.descricao}</p>
+                             <div class="border-t border-gray-600 pt-2 mt-2 flex justify-between items-center">
+                               <span class="px-2 py-0.5 text-xs font-semibold rounded-full ${statusBadgeColors[ocorrencia.status] || 'bg-gray-600 text-gray-200'}">
+                                 ${ocorrencia.status}
+                               </span>
+                               <div class="flex items-center gap-3">
+                                 ${detailsLink} ${traceRouteButton}
+                               </div>
+                             </div>
+                           </div>`
+                    );
+
+                    const el = document.createElement('div');
+                    el.className = 'marker-icon occurrence-marker';
+                    let animationHTML = '';
+                    if (isAssignedOperator) {
+                        el.classList.add('marker-assigned');
+                        animationHTML = '<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>';
+                    }
+                    const iconSVG = typeIcons[ocorrencia.tipo] || typeIcons['iluminacao apagada'];
+                    el.innerHTML = `${animationHTML}<span class="relative flex justify-center items-center">${iconSVG}</span>`;
+                    
+                    const svg = el.getElementsByTagName('svg')[0];
+                    if (svg) {
+                        svg.style.fill = statusColors[ocorrencia.status] || '#808080';
+                    }
+
+                    new mapboxgl.Marker(el)
+                        .setLngLat([ocorrencia.longitude, ocorrencia.latitude])
+                        .setPopup(popup)
+                        .addTo(map);
+                });
+            })
+            .catch(error => console.error('Erro na requisição AJAX:', error));
+    }
+
+    // Mostra o painel de filtros se for operador
+    if (currentUserType === 'operador') {
+        document.getElementById('filter-panel').style.display = 'block';
+    }
 
     // --- LÓGICA PARA TRAÇAR ROTA (PARA ADMINS) ---
     const routePanel = document.getElementById('route-panel');
