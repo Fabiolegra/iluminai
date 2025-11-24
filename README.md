@@ -1,193 +1,230 @@
-autor: Fabio Argel Ribeiro de Lima
-# IluminAI - Gestão de Ocorrências de Iluminação Pública
+# IluminAI - Plataforma de Gestão de Ocorrências de Iluminação Pública
 
-> Uma plataforma web colaborativa para reportar e gerenciar ocorrências de iluminação pública de forma inteligente, segura e geolocalizada.
+![IluminAI](https://img.shields.io/badge/IluminAI-Gestão%20Inteligente-blue.svg)
+![PHP](https://img.shields.io/badge/PHP-8.x-blueviolet.svg)
+![MySQL](https://img.shields.io/badge/MySQL-8.0-orange.svg)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.x-cyan.svg)
+![Mapbox](https://img.shields.io/badge/Mapbox-GL%20JS-green.svg)
 
-**[➡️ Acessar a Demonstração Online](https://iluminai.ct.ws/)**
-
-## 📖 Sobre
-
-O **IluminAI** é um sistema web desenvolvido para facilitar a comunicação entre os cidadãos e a administração municipal a respeito de problemas na iluminação pública. Usuários podem se cadastrar, fazer login e reportar ocorrências como postes com lâmpadas queimadas, falta de energia ou fios soltos, marcando a localização exata em um mapa interativo.
-
-Administradores possuem um painel para visualizar todas as ocorrências, alterar seus status (de "pendente" para "em andamento" ou "resolvido") e, assim, gerenciar o fluxo de trabalho das equipes de manutenção. O objetivo é agilizar a resolução dos problemas, tornando a cidade mais segura e bem iluminada para todos.
-
-### ✨ Funcionalidades
-
-*   **Autenticação Completa:** Sistema seguro de cadastro, login e logout.
-*   **Confirmação de E-mail:** Novos usuários precisam validar seu e-mail para ativar a conta.
-*   **Recuperação de Senha:** Fluxo completo de "esqueci minha senha" com envio de link seguro por e-mail.
-*   **Perfis de Usuário:** Três níveis de acesso: `usuário` (cidadão), `operador` (equipe de campo) e `admin` (gestor).
-*   **Gerenciamento de Perfil:** Usuários podem alterar seu nome, senha e foto de perfil.
-*   **Reporte Georreferenciado:** Formulário para criar ocorrências com tipo, descrição, até 3 fotos e localização precisa no mapa (clique ou geolocalização do navegador).
-*   **Edição de Ocorrências:** Usuários podem editar suas próprias ocorrências enquanto o status for "pendente". Administradores podem editar a qualquer momento.
-*   **Upload de Imagens para a Nuvem:** As fotos de ocorrências e de perfil são armazenadas de forma segura em um bucket **AWS S3**.
-*   **Mapa Interativo (Mapbox):** Visualização de todas as ocorrências, com ícones e cores que representam o tipo e o status do problema.
-*   **Painel do Usuário (`Minhas Ocorrências`):** Área onde os cidadãos podem acompanhar o status e interagir em suas ocorrências, com indicadores de mensagens não lidas.
-*   **Painel do Operador:** Dashboard focado nas ocorrências que foram atribuídas ao operador, permitindo que ele as marque como "resolvidas".
-*   **Painel Administrativo Avançado:**
-    *   Dashboard com estatísticas (ocorrências pendentes, em andamento, resolvidas).
-    *   Filtros por data, tipo e status.
-    *   Gráfico de ocorrências por tipo (`Chart.js`).
-    *   Tabela para gerenciamento rápido de status.
-    *   **Gerenciamento de Ocorrências:** Tabela para alterar status e atribuir ocorrências a operadores.
-    *   **Gerenciamento de Usuários:** Painel para criar, visualizar, filtrar (por e-mail e tipo) e excluir operadores.
-    *   **Traçar Rota:** Admins podem traçar uma rota de sua localização atual até uma ocorrência diretamente no mapa.
-*   **Sistema de Chat por Ocorrência:** Área de comentários para comunicação entre o usuário e os administradores.
-*   **Histórico de Status:** Log de todas as alterações de status de uma ocorrência para rastreabilidade.
-*   **Segurança:** Validação de dados no servidor, senhas criptografadas (hash), proteção contra acesso indevido e uso de prepared statements para prevenir SQL Injection.
-
-### 🛠️ Tecnologias Utilizadas
-
-*   **Backend:** PHP
-*   **Banco de Dados:** MySQL
-*   **Frontend:** HTML, Tailwind CSS (via CDN), JavaScript
-*   **Mapas:** Mapbox GL JS API
-*   **Armazenamento de Arquivos:** AWS S3
-*   **Envio de E-mails:** PHPMailer (via SMTP)
-*   **Gráficos:** Chart.js
-*   **Gerenciador de Dependências:** Composer
+O IluminAI é um sistema web completo projetado para o reporte, visualização e gerenciamento de ocorrências relacionadas à iluminação pública. A plataforma conecta cidadãos, operadores de campo e administradores, otimizando o fluxo de resolução de problemas como postes com luzes queimadas, fios soltos e outras eventualidades.
 
 ---
 
-## 📂 Estrutura do Projeto
+## ✨ Funcionalidades Principais
 
-```
-iluminai/
-├── config/               # Conexão com o banco de dados
-├── public/               # Arquivos acessíveis pelo navegador (páginas, CSS, JS)
-│   ├── uploads/          # Imagens enviadas pelos usuários
-│   └── templates/        # Partes reutilizáveis de HTML (ex: header)
-├── src/                  # Lógica principal da aplicação
-│   └── actions/          # Scripts que processam formulários (login, registro, etc.)
-├── vendor/               # Dependências do Composer
-├── .env                  # Arquivo para variáveis de ambiente (NÃO versionar)
-├── .env.example          # Exemplo de arquivo .env
-├── bootstrap.php         # Inicializa a aplicação (sessão, autoload, .env)
-├── composer.json         # Define as dependências do projeto
-├── esquema.sql           # Estrutura do banco de dados
-└── README.md             # Este arquivo
-```
+A plataforma é dividida em três níveis de acesso, cada um com ferramentas específicas:
+
+### 👤 Painel do Usuário (Cidadão)
+- **Autenticação Segura**: Cadastro com confirmação por e-mail, login e recuperação de senha.
+- **Reporte de Ocorrências**: Formulário intuitivo para reportar problemas, incluindo tipo, descrição, upload de fotos e seleção da localização exata em um mapa interativo (Mapbox).
+- **Mapa de Ocorrências**: Visualização de todas as ocorrências em um mapa, com marcadores coloridos de acordo com o status (Pendente, Em Andamento, Resolvido).
+- **Minhas Ocorrências**: Página para acompanhar o status e o histórico de todas as suas ocorrências reportadas.
+- **Comunicação Direta**: Um sistema de chat em cada ocorrência para interagir com administradores e operadores.
+- **Gestão de Perfil**: Atualização de dados pessoais e foto de perfil.
+
+### 🛠️ Painel do Operador
+- **Visualização Otimizada**: Acesso ao mapa com filtros para visualizar todas as ocorrências ou apenas aquelas atribuídas a ele.
+- **Ocorrências Atribuídas**: Uma lista clara com as tarefas sob sua responsabilidade.
+- **Detalhes da Ocorrência**: Acesso completo aos detalhes, incluindo a capacidade de traçar uma rota até o local.
+- **Atualização de Status**: Pode marcar uma ocorrência como "Resolvida" após a conclusão do serviço.
+- **Interação via Chat**: Comunica-se com o cidadão e administradores para obter mais detalhes ou fornecer atualizações.
+
+### 👑 Painel do Administrador
+- **Dashboard Analítico**: Visão geral com estatísticas, gráficos de ocorrências por tipo e status, e filtros por período.
+- **Gestão Completa de Ocorrências**:
+  - Atribuição de ocorrências a operadores específicos.
+  - Alteração manual de status.
+  - Edição e exclusão de ocorrências.
+- **Gerenciamento de Usuários**:
+  - Visualização e filtragem de todos os usuários (cidadãos, operadores, admins).
+  - Criação de novas contas de operadores.
+  - Acesso ao perfil detalhado de cada usuário, com estatísticas de suas atividades.
+  - Capacidade de bloquear ou reativar usuários.
+- **Sistema de Avisos**: Ferramenta para enviar notificações para usuários específicos, por tipo (todos os operadores, por exemplo) ou para todos os usuários do sistema.
 
 ---
 
-## � Começando
+## 🚀 Tecnologias Utilizadas
 
-Siga estas instruções para obter uma cópia do projeto em funcionamento na sua máquina local para fins de desenvolvimento e teste.
+- **Backend**:
+  - **PHP 8+**: Linguagem principal da aplicação.
+  - **MySQL**: Banco de dados para armazenamento de todas as informações.
+  
 
-### ✅ Pré-requisitos
+- **Frontend**:
+  - **HTML5** e **JavaScript**: Estrutura e interatividade do lado do cliente.
+  - **Tailwind CSS**: Framework CSS utilitário para uma estilização moderna e responsiva.
+  - **Mapbox GL JS**: API para a renderização de mapas interativos, geocodificação e cálculo de rotas.
+  - **Chart.js**: Biblioteca para a criação de gráficos dinâmicos no dashboard do administrador.
 
-Para rodar este projeto, você precisará de um ambiente de desenvolvimento web com PHP e MySQL.
+- **Ferramentas e Dependências**:
+  - **Composer**: Gerenciador de dependências PHP.
+  - **PHPMailer**: Biblioteca para envio de e-mails (confirmação de conta, recuperação de senha, etc.).
+  - **DotEnv**: Para gerenciamento de variáveis de ambiente.
 
-*   **Servidor Web com PHP:** XAMPP, WAMP, MAMP ou similar.
-*   **Banco de Dados:** MySQL
-*   **Navegador Web:** Chrome, Firefox, etc.
-*   **Composer:** Para gerenciar as dependências do PHP.
-*   **Token de API do Mapbox:** É necessário criar uma conta gratuita no Mapbox para obter um token de acesso.
-*   **Credenciais AWS S3:** Uma conta na AWS com um bucket S3 configurado e credenciais de acesso (ID da chave de acesso e chave de acesso secreta).
-*   **Servidor SMTP:** Credenciais de um servidor SMTP (como Gmail, SendGrid, etc.) para o envio de e-mails de confirmação e recuperação de senha.
+---
 
-### ⚙️ Instalação
+## 🚀 Guia de Instalação Detalhado (Passo a Passo com XAMPP)
 
-1.  **Clone o repositório** para o diretório do seu servidor web (ex: `htdocs` no XAMPP).
-    ```sh
-    git clone https://github.com/Fabiolegra/iluminai.git
+Este guia detalha todo o processo para configurar e executar o projeto IluminAI em seu computador local usando o XAMPP.
+
+### Pré-requisitos
+
+- **XAMPP**: Garante um ambiente com Apache, MySQL e PHP. Baixe em [apachefriends.org](https://www.apachefriends.org/index.html).
+- **Composer**: Gerenciador de dependências para PHP. Instruções de instalação em [getcomposer.org](https://getcomposer.org/download/).
+- **Git**: Sistema de controle de versão para baixar o código. Baixe em git-scm.com.
+- **Contas de Serviço**:
+  - **Conta na AWS**: Para o serviço S3 (armazenamento de imagens).
+  - **Conta na Mapbox**: Para a API de mapas.
+  - **Conta de E-mail (Gmail)**: Para enviar e-mails de confirmação e recuperação de senha.
+
+---
+
+### Passo 1: Download do Projeto e Dependências
+
+1.  **Abra o Terminal do XAMPP**: No painel de controle do XAMPP, clique no botão "Shell".
+2.  **Navegue até a pasta `htdocs`**: Este é o diretório onde o XAMPP armazena os sites.
+    ```bash
+    cd C:/xampp/htdocs
+    ```
+3.  **Clone o repositório do projeto**:
+    ```bash
+    git clone https://github.com/seu-usuario/iluminai.git
+    ```
+4.  **Acesse a pasta do projeto**:
+    ```bash
     cd iluminai
     ```
-
-2.  **Instale as Dependências**
-    *   Execute o Composer para baixar as bibliotecas necessárias (como o `dotenv`).
-    ```sh
+5.  **Instale as dependências do PHP**: O Composer irá ler o arquivo `composer.json` e baixar as bibliotecas necessárias (AWS SDK, PHPMailer, etc.).
+    ```bash
     composer install
     ```
 
-3.  **Crie o Banco de Dados**
-    *   Acesse seu gerenciador de banco de dados (como o phpMyAdmin).
-    *   Crie um novo banco de dados chamado `iluminai`.
-    *   Importe o arquivo `esquema.sql` para criar as tabelas e suas estruturas.
+---
 
-4.  **Configure as Variáveis de Ambiente**
-    *   Na raiz do projeto, copie o arquivo `.env.example` e renomeie a cópia para `.env`.
-    *   Abra o arquivo `.env` e preencha **todas** as credenciais: banco de dados, Mapbox, AWS S3 e SMTP.
-    ```dotenv
-    # .env
-    # Banco de Dados
-    DB_HOST=localhost
-    DB_DATABASE=iluminai
-    DB_USERNAME=root
-    DB_PASSWORD=
+### Passo 2: Configuração do Banco de Dados
 
-    # Mapbox
-    MAPBOX_TOKEN="seu_token_aqui"
+1.  **Inicie o Apache e o MySQL** no painel de controle do XAMPP.
+2.  **Abra o phpMyAdmin**: Navegue até `http://localhost/phpmyadmin` em seu navegador.
+3.  **Crie o Banco de Dados**:
+    - Clique na aba **"Bancos de dados"**.
+    - No campo "Criar banco de dados", digite `iluminai`.
+    - Selecione o agrupamento `utf8mb4_unicode_ci` e clique em **"Criar"**.
+4.  **Importe a Estrutura**:
+    - Clique no banco de dados `iluminai` que acabou de criar (na lista à esquerda).
+    - Clique na aba **"Importar"**.
+    - Clique em **"Escolher arquivo"** e selecione o arquivo `esquema.sql` que está na pasta do projeto (`C:\xampp\htdocs\iluminai\esquema.sql`).
+    - Role para baixo e clique em **"Executar"**. As tabelas do projeto serão criadas.
 
-    # AWS S3
-    AWS_ACCESS_KEY_ID="sua_key_id_aqui"
-    AWS_SECRET_ACCESS_KEY="sua_secret_key_aqui"
-    AWS_REGION="sua_regiao_aqui" # ex: us-east-1
-    AWS_BUCKET="nome_do_seu_bucket_aqui"
+---
 
-    # E-mail (SMTP)
-    SMTP_HOST="smtp.example.com"
-    SMTP_USER="seu_email@example.com"
-    SMTP_PASS="sua_senha_de_app"
-    SMTP_PORT=587
-    SMTP_SECURE="tls"
-    SMTP_FROM_EMAIL="no-reply@example.com"
-    SMTP_FROM_NAME="IluminAI"
+### Passo 3: Configuração das Variáveis de Ambiente (`.env`)
+
+Este é o passo mais importante. Ele conecta sua aplicação com todos os serviços externos.
+
+1.  **Crie o arquivo `.env`**: Na pasta do projeto (`C:\xampp\htdocs\iluminai`), renomeie o arquivo `.env.example` para `.env`.
+2.  **Abra o arquivo `.env`** em um editor de código e preencha as informações conforme os sub-passos abaixo.
+
+#### 3.1) Configuração do Banco de Dados e App
+
+Estas são as configurações padrão para o XAMPP.
+
+```env
+# URL base da sua aplicação. Aponte para a pasta 'public' do seu projeto.
+APP_URL=http://localhost/iluminai/public
+
+# Configuração do Banco de Dados (padrão XAMPP)
+DB_HOST=localhost
+DB_USERNAME=root
+DB_PASSWORD=
+DB_DATABASE=iluminai
+```
+
+#### 3.2) Configuração da AWS para o S3 (Upload de Fotos)
+
+1.  **Faça login no Console AWS**.
+2.  **Crie um usuário IAM**:
+    - No campo de busca, procure por **"IAM"** e acesse o serviço.
+    - No menu lateral, clique em **"Users"** e depois em **"Create user"**.
+    - Dê um nome ao usuário (ex: `iluminai-s3-user`) e clique em **"Next"**.
+    - Selecione **"Attach policies directly"**, procure por `AmazonS3FullAccess` e marque a caixa. Clique em **"Next"**.
+    - Revise e clique em **"Create user"**.
+3.  **Crie as chaves de acesso**:
+    - Clique no usuário que você acabou de criar.
+    - Vá para a aba **"Security credentials"**.
+    - Role para baixo até **"Access keys"** e clique em **"Create access key"**.
+    - Selecione **"Command Line Interface (CLI)"**, marque a confirmação e clique em **"Next"**.
+    - Clique em **"Create access key"**.
+    - **Copie e guarde a "Access key ID" e a "Secret access key"**. Cole-as no seu arquivo `.env`.
+4.  **Crie um Bucket S3**:
+    - No campo de busca do console, procure por **"S3"** e acesse o serviço.
+    - Clique em **"Create bucket"**.
+    - Dê um **nome único global** para o bucket (ex: `iluminai-fotos-seu-nome-123`).
+    - Escolha a **Região da AWS** (ex: `us-east-1`).
+    - Role para baixo até a seção **"Block Public Access settings for this bucket"** e **desmarque** a opção **"Block all public access"**. Marque a caixa de confirmação que aparecerá. Isso é **essencial** para que as imagens possam ser visualizadas no site.
+    - Clique em **"Create bucket"**.
+5.  **Preencha o `.env` com os dados da AWS**:
+
+```env
+# Configuração da AWS S3 para upload de fotos
+AWS_ACCESS_KEY_ID="SUA_ACCESS_KEY_ID_COPIADA_AQUI"
+AWS_SECRET_ACCESS_KEY="SUA_SECRET_ACCESS_KEY_COPIADA_AQUI"
+AWS_DEFAULT_REGION="us-east-1" # Região que você escolheu
+AWS_BUCKET="nome-do-seu-bucket-criado-aqui"
+```
+
+#### 3.3) Configuração do Mapbox (Mapas)
+
+1.  **Faça login na sua conta Mapbox**.
+2.  Você será redirecionado para o seu Dashboard. A chave de acesso padrão (**Default public token**) estará visível.
+3.  Copie essa chave e cole no seu arquivo `.env`.
+
+```env
+# Chave da API do Mapbox
+MAPBOX_TOKEN="SUA_CHAVE_PUBLICA_DO_MAPBOX_AQUI"
+```
+
+#### 3.4) Configuração de E-mail (com Gmail)
+
+Para usar o Gmail, você precisa de uma "Senha de App".
+
+1.  **Ative a Verificação em 2 Etapas**: Se ainda não estiver ativa, acesse sua Conta Google, vá em **"Segurança"** e ative a **"Verificação em 2 etapas"**.
+2.  **Crie uma Senha de App**:
+    - Na mesma página de **"Segurança"**, clique em **"Senhas de app"**.
+    - Em "Selecionar app", escolha **"E-mail"**.
+    - Em "Selecionar dispositivo", escolha **"Computador Windows"**.
+    - Clique em **"Gerar"**.
+    - Uma senha de 16 letras será gerada. **Copie esta senha** (sem os espaços).
+3.  **Preencha o `.env` com os dados do Gmail**:
+
+```env
+# Configuração do Servidor de E-mail (PHPMailer com Gmail)
+SMTP_HOST=smtp.gmail.com
+SMTP_USER="seu_endereco@gmail.com"
+SMTP_PASS="A_SENHA_DE_APP_DE_16_LETRAS_AQUI"
+SMTP_PORT=587
+SMTP_SECURE=tls
+```
+
+---
+
+### Passo 4: Finalização
+
+1.  **Reinicie o Apache**: No painel de controle do XAMPP, pare (`Stop`) e inicie (`Start`) o módulo do Apache para garantir que todas as configurações sejam carregadas.
+2.  **Acesse a Aplicação**: Abra seu navegador e acesse a pasta `public` do projeto:
     ```
+    http://localhost/iluminai/public/
+    ```
+    Você deverá ser redirecionado para a página de login.
 
-5.  **Crie o Usuário Administrador**
-    *   Com o servidor web em execução, acesse o seguinte URL no seu navegador:
-    *   `http://localhost/iluminai/src/actions/setup_admin.php`
-    *   Este script criará o usuário administrador padrão com as seguintes credenciais:
-        *   **E-mail:** `admin@iluminai.com`
-        *   **Senha:** `admin123`
-    *   **Aviso de Segurança:** É altamente recomendado remover ou proteger o arquivo `setup_admin.php` após o uso.
+Pronto! Se todos os passos foram seguidos corretamente, o site IluminAI estará funcionando em seu ambiente local.
 
 ---
-
-## ▶️ Uso
-
-1.  **Acesse a Página Inicial**
-    *   Abra `http://localhost/iluminai/` no seu navegador para ver a landing page.
-
-2.  **Crie uma Conta ou Faça Login**
-    *   Use a página de registro para criar uma conta de usuário comum.
-    *   Use as credenciais do administrador (`admin@iluminai.com` / `admin123`) para acessar com privilégios de administrador.
-
-3.  **Explore a Aplicação**
-    *   Após o login, você será redirecionado para o mapa principal, onde poderá ver e criar ocorrências.
-    *   Acesse "Minhas Ocorrências" para ver seu histórico.
-    *   Acesse "Meu Perfil" para alterar seus dados.
-
----
-
-## 🗃️ Banco de Dados
-
-O banco de dados é composto por 5 tabelas principais:
-
-*   `users`: Armazena os dados dos usuários (comuns e administradores).
-*   `ocorrencias`: Tabela central que guarda todas as ocorrências reportadas, incluindo tipo, descrição, localização e status.
-*   `users`: Armazena os dados dos usuários (`usuario`, `operador` e `admin`).
-*   `ocorrencias`: Tabela central que guarda todas as ocorrências reportadas, incluindo tipo, descrição, localização, status e o `operador_id` atribuído.
-*   `ocorrencias_log`: Registra o histórico de mudanças de status de cada ocorrência, garantindo rastreabilidade.
-*   `comentarios`: Armazena as mensagens trocadas dentro de uma ocorrência, formando o sistema de chat.
-*   `comentarios_visualizacao`: Controla quais comentários já foram lidos por cada usuário em cada ocorrência.
-
 
 ## 🤝 Contribuição
 
-Contribuições são o que tornam a comunidade de código aberto um lugar incrível para aprender, inspirar e criar. Qualquer contribuição que você fizer será **muito apreciada**.
+Contribuições são bem-vindas! Se você deseja melhorar o projeto, sinta-se à vontade para abrir uma *Pull Request* ou reportar um bug através das *Issues*.
 
-1.  Faça um **Fork** do projeto.
-2.  Crie uma nova Branch (`git checkout -b feature/AmazingFeature`).
-3.  Faça o **Commit** de suas alterações (`git commit -m 'Add some AmazingFeature'`).
-4.  Faça o **Push** da Branch (`git push origin feature/AmazingFeature`).
-5.  Abra um **Pull Request**.
+## 📄 Licença
 
-Não se esqueça de dar uma estrela ao projeto! Obrigado!
-
----
-
-## 📜 Licença
-
-Distribuído sob a licença MIT. Veja `LICENSE.md` para mais informações.
+Este projeto é distribuído sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
