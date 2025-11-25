@@ -1,5 +1,10 @@
 ## Autor: Fábio Argel Ribeiro de Lima
 # IluminAI - Plataforma de Gestão de Ocorrências de Iluminação Pública
+---
+
+**[➡️ Acesse a plataforma aqui](https://iluminai.ct.ws)**
+
+---
 
 ![IluminAI](https://img.shields.io/badge/IluminAI-Gestão%20Inteligente-blue.svg)
 ![PHP](https://img.shields.io/badge/PHP-8.x-blueviolet.svg)
@@ -8,8 +13,6 @@
 ![Mapbox](https://img.shields.io/badge/Mapbox-GL%20JS-green.svg)
 
 O IluminAI é um sistema web completo projetado para o reporte, visualização e gerenciamento de ocorrências relacionadas à iluminação pública. A plataforma conecta cidadãos, operadores de campo e administradores, otimizando o fluxo de resolução de problemas como postes com luzes queimadas, fios soltos e outras eventualidades.
-
----
 
 ## ✨ Funcionalidades Principais
 
