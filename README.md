@@ -1,3 +1,4 @@
+## Autor: Fábio Argel Ribeiro de Lima
 # IluminAI - Plataforma de Gestão de Ocorrências de Iluminação Pública
 
 ![IluminAI](https://img.shields.io/badge/IluminAI-Gestão%20Inteligente-blue.svg)
