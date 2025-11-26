@@ -4,6 +4,11 @@
 
 **[➡️ Acesse a plataforma aqui](https://iluminai.ct.ws)**
 
+**[➡️ Acessar o vídeo no YouTube aqui](https://youtu.be/CV5QKwNMKZU?si=IwJlc7O8CgRhJa6b)**
+
+
+
+
 ---
 
 ![IluminAI](https://img.shields.io/badge/IluminAI-Gestão%20Inteligente-blue.svg)
